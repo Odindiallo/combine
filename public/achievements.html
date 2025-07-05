@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Achievements - SkillForge</title>
+    <link rel="stylesheet" href="/css/main.css">
+    <link rel="stylesheet" href="/css/pages/achievements.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <h1>SkillForge</h1>
+            </div>
+            <div class="nav-links">
+                <a href="/dashboard.html" class="nav-link">Dashboard</a>
+                <a href="/assessment.html" class="nav-link">Assessments</a>
+                <a href="/progress.html" class="nav-link">Progress</a>
+                <a href="/achievements.html" class="nav-link active">Achievements</a>
+                <div class="user-menu">
+                    <button id="userMenuBtn" class="btn btn-outline">
+                        <span id="userEmail">user@example.com</span>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M7 10l5 5 5-5z"/>
+                        </svg>
+                    </button>
+                    <div id="userDropdown" class="user-dropdown hidden">
+                        <a href="#" class="dropdown-item">Profile</a>
+                        <a href="#" class="dropdown-item">Settings</a>
+                        <button id="logoutBtn" class="dropdown-item">Logout</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <div class="container">
+            <div class="achievements-header">
+                <h1>Your Achievements</h1>
+                <p>Celebrate your learning milestones and unlock new goals</p>
+                
+                <div class="achievement-stats">
+                    <div class="achievement-stat">
+                        <h3 id="unlockedCount">0</h3>
+                        <p>Unlocked</p>
+                    </div>
+                    <div class="achievement-stat">
+                        <h3 id="totalCount">0</h3>
+                        <p>Total</p>
+                    </div>
+                    <div class="achievement-stat">
+                        <h3 id="completionRate">0%</h3>
+                        <p>Completion</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="achievements-content">
+                <!-- Filter and Sort Controls -->
+                <div class="achievements-controls">
+                    <div class="filter-controls">
+                        <button id="allFilter" class="filter-btn active">All</button>
+                        <button id="unlockedFilter" class="filter-btn">Unlocked</button>
+                        <button id="lockedFilter" class="filter-btn">Locked</button>
+                        <button id="inProgressFilter" class="filter-btn">In Progress</button>
+                    </div>
+                    
+                    <div class="sort-controls">
+                        <select id="sortSelect" class="sort-select">
+                            <option value="date-desc">Recently Unlocked</option>
+                            <option value="date-asc">Oldest First</option>
+                            <option value="name-asc">Name A-Z</option>
+                            <option value="name-desc">Name Z-A</option>
+                            <option value="progress-desc">Most Progress</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Achievement Categories -->
+                <div class="achievements-categories">
+                    <div class="category-tabs">
+                        <button id="allTab" class="category-tab active">All Achievements</button>
+                        <button id="learningTab" class="category-tab">Learning</button>
+                        <button id="assessmentTab" class="category-tab">Assessment</button>
+                        <button id="streakTab" class="category-tab">Streak</button>
+                        <button id="skillTab" class="category-tab">Skill Mastery</button>
+                        <button id="socialTab" class="category-tab">Social</button>
+                        <button id="specialTab" class="category-tab">Special</button>
+                    </div>
+                </div>
+
+                <!-- Achievements Grid -->
+                <div id="achievementsGrid" class="achievements-grid">
+                    <!-- Achievements will be loaded dynamically -->
+                </div>
+
+                <!-- Recent Unlocks -->
+                <div class="recent-unlocks">
+                    <h2>Recent Unlocks</h2>
+                    <div id="recentUnlocksList" class="recent-unlocks-list">
+                        <!-- Recent unlocks will be displayed here -->
+                    </div>
+                </div>
+
+                <!-- Progress Toward Next Achievement -->
+                <div class="next-achievements">
+                    <h2>Next to Unlock</h2>
+                    <div id="nextAchievementsList" class="next-achievements-list">
+                        <!-- Achievements close to being unlocked will be shown here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Achievement Detail Modal -->
+    <div id="achievementModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalAchievementName">First Steps</h2>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="achievement-detail">
+                    <div class="achievement-icon-large">
+                        <span id="modalAchievementIcon">🎯</span>
+                        <div id="modalAchievementStatus" class="achievement-status unlocked">Unlocked!</div>
+                    </div>
+                    
+                    <div class="achievement-info">
+                        <p id="modalAchievementDescription">Complete your first skill assessment</p>
+                        
+                        <div id="achievementProgress" class="achievement-progress">
+                            <div class="progress-header">
+                                <span>Progress</span>
+                                <span id="progressText">5 / 5</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div id="modalProgressFill" class="progress-fill" style="width: 100%"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="achievement-meta">
+                            <div class="meta-item">
+                                <label>Category</label>
+                                <span id="achievementCategory">Learning</span>
+                            </div>
+                            <div class="meta-item" id="unlockedDateItem">
+                                <label>Unlocked</label>
+                                <span id="unlockedDate">Jan 15, 2024</span>
+                            </div>
+                            <div class="meta-item" id="xpRewardItem">
+                                <label>XP Reward</label>
+                                <span id="xpReward">100 XP</span>
+                            </div>
+                        </div>
+                        
+                        <div id="achievementHint" class="achievement-hint hidden">
+                            <h4>How to unlock:</h4>
+                            <p id="hintText">Complete any skill assessment to unlock this achievement.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="modal-actions">
+                    <button id="shareAchievementBtn" class="btn btn-primary">Share Achievement</button>
+                    <button class="btn btn-outline modal-close">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Share Achievement Modal -->
+    <div id="shareModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Share Your Achievement</h2>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="share-preview">
+                    <div class="share-card">
+                        <div class="share-header">
+                            <span class="share-logo">SkillForge</span>
+                        </div>
+                        <div class="share-content">
+                            <div class="share-icon">🏆</div>
+                            <h3 id="shareAchievementName">Achievement Unlocked!</h3>
+                            <p id="shareAchievementDesc">First Steps</p>
+                            <p class="share-subtitle">Completed my first assessment on SkillForge!</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="share-options">
+                    <button id="copyLinkBtn" class="btn btn-outline">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
+                        </svg>
+                        Copy Link
+                    </button>
+                    <button id="shareTwitterBtn" class="btn btn-primary">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M23 3a10.9 10.9 0 01-3.14 1.53 4.48 4.48 0 00-7.86 3v1A10.66 10.66 0 013 4s-4 9 5 13a11.64 11.64 0 01-7 2c9 5 20 0 20-11.5a4.5 4.5 0 00-.08-.83A7.72 7.72 0 0023 3z"/>
+                        </svg>
+                        Share on Twitter
+                    </button>
+                    <button id="shareLinkedInBtn" class="btn btn-outline">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M16 8a6 6 0 016 6v7h-4v-7a2 2 0 00-2-2 2 2 0 00-2 2v7h-4v-7a6 6 0 016-6zM2 9h4v12H2z"/>
+                            <circle cx="4" cy="4" r="2"/>
+                        </svg>
+                        Share on LinkedIn
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Celebration Animation -->
+    <div id="celebrationOverlay" class="celebration-overlay hidden">
+        <div class="celebration-content">
+            <div class="celebration-icon">🎉</div>
+            <h2>Achievement Unlocked!</h2>
+            <div class="new-achievement">
+                <div class="achievement-icon">
+                    <span id="celebrationAchievementIcon">🏆</span>
+                </div>
+                <div class="achievement-details">
+                    <h3 id="celebrationAchievementName">First Steps</h3>
+                    <p id="celebrationAchievementDesc">Complete your first assessment</p>
+                </div>
+            </div>
+            <button id="celebrationCloseBtn" class="btn btn-primary">Awesome!</button>
+        </div>
+    </div>
+
+    <!-- Loading Spinner -->
+    <div id="loadingSpinner" class="loading-spinner hidden">
+        <div class="spinner"></div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <script type="module" src="/js/achievements.js"></script>
+</body>
+</html>

@@ -1,0 +1,585 @@
+{
+  "version": "1.0.0",
+  "title": "SkillForge Data Models",
+  "description": "Shared data structures for consistent frontend/backend communication",
+  "models": {
+    "User": {
+      "description": "Represents a registered user in the system",
+      "properties": {
+        "id": {
+          "type": "integer",
+          "description": "Unique user identifier",
+          "required": true,
+          "example": 123
+        },
+        "email": {
+          "type": "string",
+          "description": "User's email address (unique)",
+          "required": true,
+          "format": "email",
+          "example": "user@example.com"
+        },
+        "password_hash": {
+          "type": "string",
+          "description": "Bcrypt hashed password (backend only)",
+          "required": true,
+          "serverOnly": true
+        },
+        "created_at": {
+          "type": "datetime",
+          "description": "Account creation timestamp",
+          "required": true,
+          "format": "ISO 8601",
+          "example": "2024-01-15T10:30:00Z"
+        }
+      }
+    },
+    "Skill": {
+      "description": "Represents a skill that can be assessed",
+      "properties": {
+        "id": {
+          "type": "integer",
+          "description": "Unique skill identifier",
+          "required": true,
+          "example": 456
+        },
+        "name": {
+          "type": "string",
+          "description": "Skill name",
+          "required": true,
+          "maxLength": 100,
+          "example": "JavaScript Fundamentals"
+        },
+        "category": {
+          "type": "string",
+          "description": "Skill category",
+          "required": true,
+          "enum": ["Programming", "Design", "Data Science", "DevOps", "Management"],
+          "example": "Programming"
+        },
+        "difficulty_levels": {
+          "type": "integer",
+          "description": "Number of difficulty levels (1-5)",
+          "required": true,
+          "min": 1,
+          "max": 5,
+          "default": 3,
+          "example": 5
+        },
+        "description": {
+          "type": "string",
+          "description": "Detailed skill description",
+          "required": false,
+          "maxLength": 500,
+          "example": "Learn the fundamentals of JavaScript programming including variables, functions, and DOM manipulation."
+        },
+        "created_at": {
+          "type": "datetime",
+          "description": "Skill creation timestamp",
+          "required": true,
+          "format": "ISO 8601",
+          "example": "2024-01-10T09:00:00Z"
+        }
+      }
+    },
+    "Assessment": {
+      "description": "Represents a skill assessment with questions",
+      "properties": {
+        "id": {
+          "type": "integer",
+          "description": "Unique assessment identifier",
+          "required": true,
+          "example": 789
+        },
+        "skill_id": {
+          "type": "integer",
+          "description": "Associated skill ID",
+          "required": true,
+          "foreignKey": "Skill.id",
+          "example": 456
+        },
+        "questions": {
+          "type": "array",
+          "description": "Array of assessment questions",
+          "required": true,
+          "items": {
+            "$ref": "#/models/Question"
+          }
+        },
+        "time_limit": {
+          "type": "integer",
+          "description": "Assessment time limit in seconds",
+          "required": true,
+          "min": 60,
+          "max": 3600,
+          "example": 1800
+        },
+        "created_by": {
+          "type": "integer",
+          "description": "User ID who created the assessment",
+          "required": true,
+          "foreignKey": "User.id",
+          "example": 123
+        },
+        "created_at": {
+          "type": "datetime",
+          "description": "Assessment creation timestamp",
+          "required": true,
+          "format": "ISO 8601",
+          "example": "2024-01-15T14:30:00Z"
+        }
+      }
+    },
+    "Question": {
+      "description": "Represents a single assessment question",
+      "properties": {
+        "id": {
+          "type": "integer",
+          "description": "Unique question identifier",
+          "required": true,
+          "example": 101
+        },
+        "type": {
+          "type": "string",
+          "description": "Question type",
+          "required": true,
+          "enum": ["multiple_choice", "coding", "short_answer", "true_false"],
+          "example": "multiple_choice"
+        },
+        "question": {
+          "type": "string",
+          "description": "Question text",
+          "required": true,
+          "maxLength": 1000,
+          "example": "What is the correct way to declare a variable in JavaScript?"
+        },
+        "options": {
+          "type": "array",
+          "description": "Answer options (for multiple choice questions)",
+          "required": false,
+          "items": {
+            "type": "string"
+          },
+          "example": ["var name;", "let name;", "const name;", "All of the above"]
+        },
+        "correct_answer": {
+          "type": "string",
+          "description": "Correct answer (hidden from frontend)",
+          "required": true,
+          "serverOnly": true,
+          "example": "All of the above"
+        },
+        "difficulty": {
+          "type": "integer",
+          "description": "Question difficulty level (1-5)",
+          "required": true,
+          "min": 1,
+          "max": 5,
+          "example": 2
+        },
+        "points": {
+          "type": "integer",
+          "description": "Points awarded for correct answer",
+          "required": true,
+          "min": 1,
+          "max": 100,
+          "example": 10
+        },
+        "explanation": {
+          "type": "string",
+          "description": "Explanation for the correct answer",
+          "required": false,
+          "maxLength": 500,
+          "example": "All three methods can be used to declare variables, but they have different scoping rules."
+        }
+      }
+    },
+    "UserProgress": {
+      "description": "Represents a user's progress in a specific skill",
+      "properties": {
+        "user_id": {
+          "type": "integer",
+          "description": "User identifier",
+          "required": true,
+          "foreignKey": "User.id",
+          "example": 123
+        },
+        "skill_id": {
+          "type": "integer",
+          "description": "Skill identifier",
+          "required": true,
+          "foreignKey": "Skill.id",
+          "example": 456
+        },
+        "skill_name": {
+          "type": "string",
+          "description": "Skill name (denormalized for frontend)",
+          "required": false,
+          "clientOnly": true,
+          "example": "JavaScript Fundamentals"
+        },
+        "level": {
+          "type": "integer",
+          "description": "Current skill level",
+          "required": true,
+          "min": 1,
+          "max": 100,
+          "default": 1,
+          "example": 5
+        },
+        "xp": {
+          "type": "integer",
+          "description": "Experience points accumulated",
+          "required": true,
+          "min": 0,
+          "default": 0,
+          "example": 2500
+        },
+        "xp_to_next_level": {
+          "type": "integer",
+          "description": "XP needed for next level (calculated)",
+          "required": false,
+          "calculated": true,
+          "example": 500
+        },
+        "streak": {
+          "type": "integer",
+          "description": "Current learning streak (days)",
+          "required": true,
+          "min": 0,
+          "default": 0,
+          "example": 7
+        },
+        "assessments_completed": {
+          "type": "integer",
+          "description": "Total assessments completed (calculated)",
+          "required": false,
+          "calculated": true,
+          "example": 12
+        },
+        "average_score": {
+          "type": "float",
+          "description": "Average assessment score (calculated)",
+          "required": false,
+          "calculated": true,
+          "min": 0.0,
+          "max": 1.0,
+          "example": 0.85
+        },
+        "last_activity": {
+          "type": "datetime",
+          "description": "Last activity timestamp",
+          "required": true,
+          "format": "ISO 8601",
+          "example": "2024-01-15T16:45:00Z"
+        }
+      }
+    },
+    "Achievement": {
+      "description": "Represents an achievement that can be unlocked",
+      "properties": {
+        "id": {
+          "type": "integer",
+          "description": "Unique achievement identifier",
+          "required": true,
+          "example": 202
+        },
+        "name": {
+          "type": "string",
+          "description": "Achievement name",
+          "required": true,
+          "maxLength": 100,
+          "example": "First Steps"
+        },
+        "description": {
+          "type": "string",
+          "description": "Achievement description",
+          "required": true,
+          "maxLength": 200,
+          "example": "Complete your first assessment"
+        },
+        "icon_url": {
+          "type": "string",
+          "description": "URL to achievement icon",
+          "required": false,
+          "format": "url",
+          "example": "/assets/icons/first-steps.png"
+        },
+        "condition_json": {
+          "type": "string",
+          "description": "JSON string defining unlock conditions (backend only)",
+          "required": true,
+          "serverOnly": true,
+          "example": "{\"type\": \"assessment_count\", \"value\": 1}"
+        },
+        "unlocked": {
+          "type": "boolean",
+          "description": "Whether user has unlocked this achievement",
+          "required": false,
+          "clientOnly": true,
+          "example": true
+        },
+        "unlocked_at": {
+          "type": "datetime",
+          "description": "Achievement unlock timestamp",
+          "required": false,
+          "nullable": true,
+          "format": "ISO 8601",
+          "example": "2024-01-15T15:20:00Z"
+        },
+        "progress": {
+          "type": "object",
+          "description": "Progress toward unlocking achievement",
+          "required": false,
+          "nullable": true,
+          "properties": {
+            "current": {
+              "type": "integer",
+              "example": 3
+            },
+            "required": {
+              "type": "integer",
+              "example": 5
+            },
+            "percentage": {
+              "type": "float",
+              "example": 0.6
+            }
+          }
+        },
+        "created_at": {
+          "type": "datetime",
+          "description": "Achievement creation timestamp",
+          "required": true,
+          "format": "ISO 8601",
+          "example": "2024-01-01T00:00:00Z"
+        }
+      }
+    },
+    "AssessmentResult": {
+      "description": "Represents the results of a completed assessment",
+      "properties": {
+        "assessment_id": {
+          "type": "integer",
+          "description": "Assessment identifier",
+          "required": true,
+          "foreignKey": "Assessment.id",
+          "example": 789
+        },
+        "user_id": {
+          "type": "integer",
+          "description": "User identifier",
+          "required": true,
+          "foreignKey": "User.id",
+          "example": 123
+        },
+        "score": {
+          "type": "float",
+          "description": "Overall score (0.0 - 1.0)",
+          "required": true,
+          "min": 0.0,
+          "max": 1.0,
+          "example": 0.8
+        },
+        "points_earned": {
+          "type": "integer",
+          "description": "Total points earned",
+          "required": true,
+          "min": 0,
+          "example": 80
+        },
+        "points_possible": {
+          "type": "integer",
+          "description": "Total points possible",
+          "required": true,
+          "min": 0,
+          "example": 100
+        },
+        "xp_earned": {
+          "type": "integer",
+          "description": "Experience points earned",
+          "required": true,
+          "min": 0,
+          "example": 150
+        },
+        "level_up": {
+          "type": "boolean",
+          "description": "Whether user leveled up",
+          "required": true,
+          "example": false
+        },
+        "achievements_unlocked": {
+          "type": "array",
+          "description": "Achievement IDs unlocked",
+          "required": true,
+          "items": {
+            "type": "integer"
+          },
+          "example": [202, 203]
+        },
+        "questions": {
+          "type": "array",
+          "description": "Individual question results",
+          "required": true,
+          "items": {
+            "$ref": "#/models/QuestionResult"
+          }
+        },
+        "time_spent": {
+          "type": "integer",
+          "description": "Total time spent in seconds",
+          "required": true,
+          "min": 0,
+          "example": 1200
+        },
+        "completed_at": {
+          "type": "datetime",
+          "description": "Assessment completion timestamp",
+          "required": true,
+          "format": "ISO 8601",
+          "example": "2024-01-15T15:00:00Z"
+        }
+      }
+    },
+    "QuestionResult": {
+      "description": "Represents the result of a single question",
+      "properties": {
+        "question_id": {
+          "type": "integer",
+          "description": "Question identifier",
+          "required": true,
+          "example": 101
+        },
+        "correct": {
+          "type": "boolean",
+          "description": "Whether answer was correct",
+          "required": true,
+          "example": true
+        },
+        "user_answer": {
+          "type": "string",
+          "description": "User's submitted answer",
+          "required": true,
+          "example": "All of the above"
+        },
+        "correct_answer": {
+          "type": "string",
+          "description": "The correct answer",
+          "required": true,
+          "example": "All of the above"
+        },
+        "explanation": {
+          "type": "string",
+          "description": "Explanation for the answer",
+          "required": false,
+          "example": "All three methods can be used to declare variables."
+        },
+        "points_earned": {
+          "type": "integer",
+          "description": "Points earned for this question",
+          "required": true,
+          "min": 0,
+          "example": 10
+        },
+        "time_spent": {
+          "type": "integer",
+          "description": "Time spent on this question in seconds",
+          "required": true,
+          "min": 0,
+          "example": 45
+        }
+      }
+    },
+    "SkillCategory": {
+      "description": "Represents a skill category with associated skills",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Category name",
+          "required": true,
+          "example": "Programming"
+        },
+        "description": {
+          "type": "string",
+          "description": "Category description",
+          "required": false,
+          "example": "Software development and programming languages"
+        },
+        "count": {
+          "type": "integer",
+          "description": "Number of skills in category",
+          "required": true,
+          "calculated": true,
+          "example": 25
+        },
+        "skills": {
+          "type": "array",
+          "description": "Skills in this category",
+          "required": true,
+          "items": {
+            "$ref": "#/models/Skill"
+          }
+        }
+      }
+    },
+    "SSEEvent": {
+      "description": "Server-sent event structure",
+      "properties": {
+        "type": {
+          "type": "string",
+          "description": "Event type",
+          "required": true,
+          "enum": ["achievement_unlocked", "level_up", "progress_update", "heartbeat"],
+          "example": "achievement_unlocked"
+        },
+        "data": {
+          "type": "object",
+          "description": "Event-specific data",
+          "required": true,
+          "example": {
+            "achievement": {
+              "id": 202,
+              "name": "First Steps",
+              "description": "Complete your first assessment"
+            }
+          }
+        },
+        "timestamp": {
+          "type": "datetime",
+          "description": "Event timestamp",
+          "required": true,
+          "format": "ISO 8601",
+          "example": "2024-01-15T15:30:00Z"
+        }
+      }
+    }
+  },
+  "validationRules": {
+    "email": {
+      "pattern": "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$",
+      "maxLength": 255
+    },
+    "password": {
+      "minLength": 8,
+      "maxLength": 128,
+      "requireUppercase": true,
+      "requireLowercase": true,
+      "requireDigit": true
+    },
+    "skillName": {
+      "minLength": 2,
+      "maxLength": 100,
+      "pattern": "^[a-zA-Z0-9\\s\\-\\.]+$"
+    },
+    "questionText": {
+      "minLength": 10,
+      "maxLength": 1000
+    }
+  },
+  "fieldTypes": {
+    "serverOnly": "Fields marked as serverOnly are never sent to the frontend",
+    "clientOnly": "Fields marked as clientOnly are computed on the frontend",
+    "calculated": "Fields marked as calculated are computed from other data",
+    "nullable": "Fields that can be null/undefined"
+  }
+}

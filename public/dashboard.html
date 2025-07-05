@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - SkillForge</title>
+    <link rel="stylesheet" href="/css/main.css">
+    <link rel="stylesheet" href="/css/pages/dashboard.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <h1>SkillForge</h1>
+            </div>
+            <div class="nav-links">
+                <a href="/dashboard.html" class="nav-link active">Dashboard</a>
+                <a href="/assessment.html" class="nav-link">Assessments</a>
+                <a href="/progress.html" class="nav-link">Progress</a>
+                <a href="/achievements.html" class="nav-link">Achievements</a>
+                <div class="user-menu">
+                    <button id="userMenuBtn" class="btn btn-outline">
+                        <span id="userEmail">user@example.com</span>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M7 10l5 5 5-5z"/>
+                        </svg>
+                    </button>
+                    <div id="userDropdown" class="user-dropdown hidden">
+                        <a href="#" class="dropdown-item">Profile</a>
+                        <a href="#" class="dropdown-item">Settings</a>
+                        <button id="logoutBtn" class="dropdown-item">Logout</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <div class="container">
+            <div class="dashboard-header">
+                <h1>Welcome back, <span id="userName">User</span>!</h1>
+                <p class="dashboard-subtitle">Continue your learning journey and track your progress</p>
+            </div>
+
+            <div class="dashboard-grid">
+                <!-- Quick Stats -->
+                <section class="stats-section">
+                    <h2>Your Stats</h2>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-icon">📊</div>
+                            <div class="stat-content">
+                                <h3 id="totalSkills">0</h3>
+                                <p>Skills Learning</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">⚡</div>
+                            <div class="stat-content">
+                                <h3 id="currentStreak">0</h3>
+                                <p>Day Streak</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">🏆</div>
+                            <div class="stat-content">
+                                <h3 id="totalAchievements">0</h3>
+                                <p>Achievements</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">📈</div>
+                            <div class="stat-content">
+                                <h3 id="totalXP">0</h3>
+                                <p>Total XP</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Skill Categories -->
+                <section class="categories-section">
+                    <div class="section-header">
+                        <h2>Skill Categories</h2>
+                        <button id="addSkillBtn" class="btn btn-primary">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12 2v20m10-10H2"/>
+                            </svg>
+                            Add Skill
+                        </button>
+                    </div>
+                    <div id="categoriesGrid" class="categories-grid">
+                        <!-- Categories will be loaded dynamically -->
+                        <div class="category-card skeleton">
+                            <div class="category-header">
+                                <div class="category-icon skeleton-item"></div>
+                                <div class="category-info">
+                                    <div class="skeleton-item skeleton-text"></div>
+                                    <div class="skeleton-item skeleton-text-small"></div>
+                                </div>
+                            </div>
+                            <div class="category-progress">
+                                <div class="skeleton-item skeleton-progress"></div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Recent Activity -->
+                <section class="activity-section">
+                    <h2>Recent Activity</h2>
+                    <div id="activityFeed" class="activity-feed">
+                        <!-- Activity items will be loaded dynamically -->
+                        <div class="activity-item skeleton">
+                            <div class="activity-icon skeleton-item"></div>
+                            <div class="activity-content">
+                                <div class="skeleton-item skeleton-text"></div>
+                                <div class="skeleton-item skeleton-text-small"></div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Quick Actions -->
+                <section class="quick-actions-section">
+                    <h2>Quick Actions</h2>
+                    <div class="quick-actions-grid">
+                        <button class="action-card" id="takeAssessmentBtn">
+                            <div class="action-icon">🎯</div>
+                            <h3>Take Assessment</h3>
+                            <p>Test your skills and earn XP</p>
+                        </button>
+                        <button class="action-card" id="viewProgressBtn">
+                            <div class="action-icon">📊</div>
+                            <h3>View Progress</h3>
+                            <p>Track your learning journey</p>
+                        </button>
+                        <button class="action-card" id="exploreSkillsBtn">
+                            <div class="action-icon">🔍</div>
+                            <h3>Explore Skills</h3>
+                            <p>Discover new areas to learn</p>
+                        </button>
+                        <button class="action-card" id="viewAchievementsBtn">
+                            <div class="action-icon">🏆</div>
+                            <h3>Achievements</h3>
+                            <p>See what you've unlocked</p>
+                        </button>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </main>
+
+    <!-- Skill Selection Modal -->
+    <div id="skillSelectionModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Select a Skill to Assess</h2>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="skillsList" class="skills-list">
+                    <!-- Skills will be populated dynamically -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Spinner -->
+    <div id="loadingSpinner" class="loading-spinner hidden">
+        <div class="spinner"></div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <script type="module" src="/js/dashboard.js"></script>
+</body>
+</html>

@@ -1,0 +1,503 @@
+{
+  "version": "1.0.0",
+  "title": "SkillForge API Contract",
+  "description": "Shared contract between Claude (backend) and Copilot (frontend) for SkillForge platform",
+  "baseUrl": "/api",
+  "responseFormat": {
+    "success": "boolean",
+    "data": "any",
+    "error": "string|null",
+    "metadata": {
+      "timestamp": "ISO 8601 datetime",
+      "version": "string",
+      "requestId": "string (optional)"
+    }
+  },
+  "errorCodes": {
+    "backend": {
+      "range": "1000-1999",
+      "codes": {
+        "1000": "Internal server error",
+        "1001": "Database connection failed",
+        "1002": "Invalid JWT token",
+        "1003": "Authentication required",
+        "1004": "Insufficient permissions",
+        "1005": "Rate limit exceeded",
+        "1006": "Invalid request body",
+        "1007": "Missing required fields",
+        "1008": "User not found",
+        "1009": "Email already exists",
+        "1010": "Invalid credentials",
+        "1011": "Skill not found",
+        "1012": "Assessment not found",
+        "1013": "AI service unavailable",
+        "1014": "Question generation failed",
+        "1015": "Progress update failed",
+        "1016": "Achievement unlock failed",
+        "1017": "Invalid skill level",
+        "1018": "Assessment expired",
+        "1019": "Database constraint violation"
+      }
+    },
+    "frontend": {
+      "range": "2000-2999",
+      "codes": {
+        "2000": "Network connection error",
+        "2001": "API request timeout",
+        "2002": "Invalid form data",
+        "2003": "Client-side validation failed",
+        "2004": "Local storage unavailable",
+        "2005": "Browser compatibility issue",
+        "2006": "Canvas rendering failed",
+        "2007": "SVG loading error",
+        "2008": "SSE connection failed",
+        "2009": "Audio playback failed",
+        "2010": "File upload failed",
+        "2011": "Image loading failed",
+        "2012": "Chart rendering failed",
+        "2013": "Modal initialization failed",
+        "2014": "Navigation error",
+        "2015": "State synchronization failed"
+      }
+    }
+  },
+  "endpoints": {
+    "auth": {
+      "register": {
+        "method": "POST",
+        "path": "/auth/register",
+        "request": {
+          "email": "string (required)",
+          "password": "string (required, min 8 chars)"
+        },
+        "response": {
+          "success": true,
+          "data": {
+            "user": {
+              "id": "integer",
+              "email": "string",
+              "created_at": "datetime"
+            },
+            "token": "string (JWT)"
+          },
+          "error": null
+        },
+        "errors": ["1006", "1007", "1009", "1019"]
+      },
+      "login": {
+        "method": "POST",
+        "path": "/auth/login",
+        "request": {
+          "email": "string (required)",
+          "password": "string (required)"
+        },
+        "response": {
+          "success": true,
+          "data": {
+            "user": {
+              "id": "integer",
+              "email": "string"
+            },
+            "token": "string (JWT)"
+          },
+          "error": null
+        },
+        "errors": ["1008", "1010"]
+      },
+      "verify": {
+        "method": "GET",
+        "path": "/auth/verify",
+        "headers": {
+          "Authorization": "Bearer {token}"
+        },
+        "response": {
+          "success": true,
+          "data": {
+            "user": {
+              "id": "integer",
+              "email": "string"
+            },
+            "valid": true
+          },
+          "error": null
+        },
+        "errors": ["1002", "1003", "1008"]
+      },
+      "logout": {
+        "method": "GET",
+        "path": "/auth/logout",
+        "headers": {
+          "Authorization": "Bearer {token}"
+        },
+        "response": {
+          "success": true,
+          "data": {
+            "message": "Logged out successfully"
+          },
+          "error": null
+        },
+        "errors": ["1002"]
+      }
+    },
+    "skills": {
+      "categories": {
+        "method": "GET",
+        "path": "/skills/categories",
+        "response": {
+          "success": true,
+          "data": {
+            "categories": [
+              {
+                "name": "string",
+                "count": "integer",
+                "skills": [
+                  {
+                    "id": "integer",
+                    "name": "string",
+                    "difficulty_levels": "integer"
+                  }
+                ]
+              }
+            ]
+          },
+          "error": null
+        },
+        "errors": ["1001"]
+      },
+      "getSkill": {
+        "method": "GET",
+        "path": "/skills/:id",
+        "response": {
+          "success": true,
+          "data": {
+            "skill": {
+              "id": "integer",
+              "name": "string",
+              "category": "string",
+              "difficulty_levels": "integer",
+              "description": "string",
+              "created_at": "datetime"
+            }
+          },
+          "error": null
+        },
+        "errors": ["1011"]
+      },
+      "createSkill": {
+        "method": "POST",
+        "path": "/skills/create",
+        "headers": {
+          "Authorization": "Bearer {token}"
+        },
+        "request": {
+          "name": "string (required)",
+          "category": "string (required)",
+          "difficulty_levels": "integer (optional, default 3)",
+          "description": "string (optional)"
+        },
+        "response": {
+          "success": true,
+          "data": {
+            "skill": {
+              "id": "integer",
+              "name": "string",
+              "category": "string",
+              "difficulty_levels": "integer",
+              "created_at": "datetime"
+            }
+          },
+          "error": null
+        },
+        "errors": ["1003", "1006", "1007", "1019"]
+      },
+      "updateSkill": {
+        "method": "PUT",
+        "path": "/skills/:id",
+        "headers": {
+          "Authorization": "Bearer {token}"
+        },
+        "request": {
+          "name": "string (optional)",
+          "category": "string (optional)",
+          "difficulty_levels": "integer (optional)",
+          "description": "string (optional)"
+        },
+        "response": {
+          "success": true,
+          "data": {
+            "skill": {
+              "id": "integer",
+              "name": "string",
+              "category": "string",
+              "difficulty_levels": "integer",
+              "updated_at": "datetime"
+            }
+          },
+          "error": null
+        },
+        "errors": ["1003", "1004", "1011"]
+      },
+      "deleteSkill": {
+        "method": "DELETE",
+        "path": "/skills/:id",
+        "headers": {
+          "Authorization": "Bearer {token}"
+        },
+        "response": {
+          "success": true,
+          "data": {
+            "message": "Skill deleted successfully"
+          },
+          "error": null
+        },
+        "errors": ["1003", "1004", "1011", "1019"]
+      }
+    },
+    "assessment": {
+      "generate": {
+        "method": "POST",
+        "path": "/assessment/generate",
+        "headers": {
+          "Authorization": "Bearer {token}"
+        },
+        "request": {
+          "skill_id": "integer (required)",
+          "level": "integer (required, 1-5)",
+          "question_count": "integer (optional, default 5)"
+        },
+        "response": {
+          "success": true,
+          "data": {
+            "assessment": {
+              "id": "integer",
+              "skill_id": "integer",
+              "questions": [
+                {
+                  "id": "integer",
+                  "type": "string (multiple_choice|coding|short_answer)",
+                  "question": "string",
+                  "options": ["string"] || null,
+                  "correct_answer": "string (hidden from client)",
+                  "difficulty": "integer",
+                  "points": "integer"
+                }
+              ],
+              "time_limit": "integer (seconds)",
+              "created_at": "datetime"
+            }
+          },
+          "error": null
+        },
+        "errors": ["1003", "1011", "1013", "1014", "1017"]
+      },
+      "submit": {
+        "method": "POST",
+        "path": "/assessment/submit",
+        "headers": {
+          "Authorization": "Bearer {token}"
+        },
+        "request": {
+          "assessment_id": "integer (required)",
+          "answers": [
+            {
+              "question_id": "integer",
+              "answer": "string",
+              "time_spent": "integer (seconds)"
+            }
+          ],
+          "total_time": "integer (seconds)"
+        },
+        "response": {
+          "success": true,
+          "data": {
+            "results": {
+              "score": "float (0-1)",
+              "points_earned": "integer",
+              "points_possible": "integer",
+              "questions": [
+                {
+                  "question_id": "integer",
+                  "correct": "boolean",
+                  "user_answer": "string",
+                  "correct_answer": "string",
+                  "explanation": "string"
+                }
+              ],
+              "xp_earned": "integer",
+              "level_up": "boolean",
+              "achievements_unlocked": ["integer"]
+            }
+          },
+          "error": null
+        },
+        "errors": ["1003", "1012", "1018"]
+      },
+      "history": {
+        "method": "GET",
+        "path": "/assessment/history/:userId",
+        "headers": {
+          "Authorization": "Bearer {token}"
+        },
+        "response": {
+          "success": true,
+          "data": {
+            "assessments": [
+              {
+                "id": "integer",
+                "skill_name": "string",
+                "score": "float",
+                "points_earned": "integer",
+                "points_possible": "integer",
+                "completed_at": "datetime",
+                "time_spent": "integer"
+              }
+            ]
+          },
+          "error": null
+        },
+        "errors": ["1003", "1004", "1008"]
+      }
+    },
+    "progress": {
+      "getProgress": {
+        "method": "GET",
+        "path": "/progress/:userId/:skillId",
+        "headers": {
+          "Authorization": "Bearer {token}"
+        },
+        "response": {
+          "success": true,
+          "data": {
+            "progress": {
+              "user_id": "integer",
+              "skill_id": "integer",
+              "skill_name": "string",
+              "level": "integer",
+              "xp": "integer",
+              "xp_to_next_level": "integer",
+              "streak": "integer",
+              "assessments_completed": "integer",
+              "average_score": "float",
+              "last_activity": "datetime"
+            }
+          },
+          "error": null
+        },
+        "errors": ["1003", "1008", "1011"]
+      },
+      "updateProgress": {
+        "method": "POST",
+        "path": "/progress/update",
+        "headers": {
+          "Authorization": "Bearer {token}"
+        },
+        "request": {
+          "user_id": "integer (required)",
+          "skill_id": "integer (required)",
+          "xp_gained": "integer (required)",
+          "streak_maintained": "boolean (optional)"
+        },
+        "response": {
+          "success": true,
+          "data": {
+            "progress": {
+              "user_id": "integer",
+              "skill_id": "integer",
+              "level": "integer",
+              "xp": "integer",
+              "streak": "integer",
+              "level_up": "boolean",
+              "achievements_unlocked": ["integer"]
+            }
+          },
+          "error": null
+        },
+        "errors": ["1003", "1008", "1011", "1015"]
+      }
+    },
+    "achievements": {
+      "getUserAchievements": {
+        "method": "GET",
+        "path": "/achievements/:userId",
+        "headers": {
+          "Authorization": "Bearer {token}"
+        },
+        "response": {
+          "success": true,
+          "data": {
+            "achievements": [
+              {
+                "id": "integer",
+                "name": "string",
+                "description": "string",
+                "icon_url": "string",
+                "unlocked": "boolean",
+                "unlocked_at": "datetime|null",
+                "progress": "object|null"
+              }
+            ]
+          },
+          "error": null
+        },
+        "errors": ["1003", "1008"]
+      }
+    },
+    "sse": {
+      "updates": {
+        "method": "GET",
+        "path": "/sse/updates",
+        "headers": {
+          "Authorization": "Bearer {token}"
+        },
+        "response": "Server-Sent Events stream",
+        "eventTypes": [
+          {
+            "type": "achievement_unlocked",
+            "data": {
+              "achievement": {
+                "id": "integer",
+                "name": "string",
+                "description": "string",
+                "icon_url": "string"
+              }
+            }
+          },
+          {
+            "type": "level_up",
+            "data": {
+              "skill_id": "integer",
+              "skill_name": "string",
+              "new_level": "integer",
+              "xp": "integer"
+            }
+          },
+          {
+            "type": "progress_update",
+            "data": {
+              "skill_id": "integer",
+              "xp_gained": "integer",
+              "streak": "integer"
+            }
+          }
+        ],
+        "errors": ["1003"]
+      }
+    }
+  },
+  "authentication": {
+    "type": "JWT Bearer Token",
+    "header": "Authorization: Bearer {token}",
+    "expiration": "24 hours",
+    "refreshStrategy": "Re-login required"
+  },
+  "rateLimiting": {
+    "global": "100 requests per hour per IP",
+    "auth": "10 requests per minute per IP",
+    "assessment": "5 requests per minute per user"
+  },
+  "contentTypes": {
+    "request": "application/json",
+    "response": "application/json",
+    "sse": "text/event-stream"
+  }
+}

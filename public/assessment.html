@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Assessment - SkillForge</title>
+    <link rel="stylesheet" href="/css/main.css">
+    <link rel="stylesheet" href="/css/pages/assessment.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <h1>SkillForge</h1>
+            </div>
+            <div class="nav-links">
+                <a href="/dashboard.html" class="nav-link">Dashboard</a>
+                <a href="/assessment.html" class="nav-link active">Assessments</a>
+                <a href="/progress.html" class="nav-link">Progress</a>
+                <a href="/achievements.html" class="nav-link">Achievements</a>
+                <div class="user-menu">
+                    <button id="userMenuBtn" class="btn btn-outline">
+                        <span id="userEmail">user@example.com</span>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M7 10l5 5 5-5z"/>
+                        </svg>
+                    </button>
+                    <div id="userDropdown" class="user-dropdown hidden">
+                        <a href="#" class="dropdown-item">Profile</a>
+                        <a href="#" class="dropdown-item">Settings</a>
+                        <button id="logoutBtn" class="dropdown-item">Logout</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <div class="container">
+            <!-- Assessment Selection View -->
+            <div id="selectionView" class="assessment-view">
+                <div class="assessment-header">
+                    <h1>Skill Assessments</h1>
+                    <p>Choose a skill to test your knowledge and earn experience points</p>
+                </div>
+
+                <div class="skill-categories">
+                    <div id="skillCategoriesGrid" class="categories-grid">
+                        <!-- Skill categories will be loaded dynamically -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Assessment Taking View -->
+            <div id="assessmentView" class="assessment-view hidden">
+                <div class="assessment-controls">
+                    <button id="exitAssessmentBtn" class="btn btn-outline">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                        </svg>
+                        Exit Assessment
+                    </button>
+                    <div class="assessment-info">
+                        <span id="skillName">JavaScript Fundamentals</span>
+                        <span id="difficultyLevel">Level 1</span>
+                    </div>
+                    <div class="assessment-timer">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                            <circle cx="12" cy="12" r="10"/>
+                            <polyline points="12,6 12,12 16,14"/>
+                        </svg>
+                        <span id="timeRemaining">30:00</span>
+                    </div>
+                </div>
+
+                <div class="assessment-progress">
+                    <div class="progress-bar">
+                        <div id="progressFill" class="progress-fill" style="width: 0%"></div>
+                    </div>
+                    <span id="questionCounter">Question 1 of 5</span>
+                </div>
+
+                <div class="question-container">
+                    <div id="questionContent" class="question-content">
+                        <!-- Question will be loaded dynamically -->
+                    </div>
+
+                    <div class="question-actions">
+                        <button id="prevQuestionBtn" class="btn btn-outline" disabled>Previous</button>
+                        <button id="nextQuestionBtn" class="btn btn-primary">Next</button>
+                        <button id="submitAssessmentBtn" class="btn btn-primary hidden">Submit Assessment</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Results View -->
+            <div id="resultsView" class="assessment-view hidden">
+                <div class="results-container">
+                    <div class="results-header">
+                        <div class="results-icon">
+                            <div id="resultsEmoji">🎉</div>
+                        </div>
+                        <h1 id="resultsTitle">Assessment Complete!</h1>
+                        <p id="resultsSubtitle">Great job on completing the assessment</p>
+                    </div>
+
+                    <div class="results-stats">
+                        <div class="result-stat">
+                            <h3 id="finalScore">85%</h3>
+                            <p>Final Score</p>
+                        </div>
+                        <div class="result-stat">
+                            <h3 id="pointsEarned">850</h3>
+                            <p>Points Earned</p>
+                        </div>
+                        <div class="result-stat">
+                            <h3 id="xpGained">150</h3>
+                            <p>XP Gained</p>
+                        </div>
+                        <div class="result-stat">
+                            <h3 id="timeSpent">12:34</h3>
+                            <p>Time Spent</p>
+                        </div>
+                    </div>
+
+                    <div id="achievementsUnlocked" class="achievements-unlocked hidden">
+                        <h3>🏆 Achievements Unlocked!</h3>
+                        <div id="newAchievements" class="new-achievements">
+                            <!-- New achievements will be displayed here -->
+                        </div>
+                    </div>
+
+                    <div class="question-review">
+                        <h3>Question Review</h3>
+                        <div id="questionReviews" class="question-reviews">
+                            <!-- Question reviews will be displayed here -->
+                        </div>
+                    </div>
+
+                    <div class="results-actions">
+                        <button id="retakeAssessmentBtn" class="btn btn-outline">Retake Assessment</button>
+                        <button id="viewProgressBtn" class="btn btn-primary">View Progress</button>
+                        <button id="backToDashboardBtn" class="btn btn-primary">Back to Dashboard</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Skill Level Selection Modal -->
+    <div id="levelSelectionModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalSkillName">Select Difficulty Level</h2>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>Choose the difficulty level for your assessment:</p>
+                <div id="levelOptions" class="level-options">
+                    <!-- Level options will be populated dynamically -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Exit Confirmation Modal -->
+    <div id="exitConfirmModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Exit Assessment?</h2>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to exit this assessment? Your progress will be lost.</p>
+                <div class="modal-actions">
+                    <button id="confirmExitBtn" class="btn btn-error">Yes, Exit</button>
+                    <button id="cancelExitBtn" class="btn btn-outline">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Spinner -->
+    <div id="loadingSpinner" class="loading-spinner hidden">
+        <div class="spinner"></div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <script type="module" src="/js/assessment.js"></script>
+</body>
+</html>

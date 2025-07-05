@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Progress - SkillForge</title>
+    <link rel="stylesheet" href="/css/main.css">
+    <link rel="stylesheet" href="/css/pages/progress.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <h1>SkillForge</h1>
+            </div>
+            <div class="nav-links">
+                <a href="/dashboard.html" class="nav-link">Dashboard</a>
+                <a href="/assessment.html" class="nav-link">Assessments</a>
+                <a href="/progress.html" class="nav-link active">Progress</a>
+                <a href="/achievements.html" class="nav-link">Achievements</a>
+                <div class="user-menu">
+                    <button id="userMenuBtn" class="btn btn-outline">
+                        <span id="userEmail">user@example.com</span>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M7 10l5 5 5-5z"/>
+                        </svg>
+                    </button>
+                    <div id="userDropdown" class="user-dropdown hidden">
+                        <a href="#" class="dropdown-item">Profile</a>
+                        <a href="#" class="dropdown-item">Settings</a>
+                        <button id="logoutBtn" class="dropdown-item">Logout</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <div class="container">
+            <div class="progress-header">
+                <h1>Your Learning Progress</h1>
+                <p>Track your skill development and see how far you've come</p>
+            </div>
+
+            <div class="progress-grid">
+                <!-- Overall Stats -->
+                <section class="overview-section">
+                    <h2>Overview</h2>
+                    <div class="overview-stats">
+                        <div class="overview-card">
+                            <div class="overview-icon">🎯</div>
+                            <div class="overview-content">
+                                <h3 id="totalAssessments">0</h3>
+                                <p>Total Assessments</p>
+                            </div>
+                        </div>
+                        <div class="overview-card">
+                            <div class="overview-icon">📊</div>
+                            <div class="overview-content">
+                                <h3 id="averageScore">0%</h3>
+                                <p>Average Score</p>
+                            </div>
+                        </div>
+                        <div class="overview-card">
+                            <div class="overview-icon">⚡</div>
+                            <div class="overview-content">
+                                <h3 id="currentStreak">0</h3>
+                                <p>Current Streak</p>
+                            </div>
+                        </div>
+                        <div class="overview-card">
+                            <div class="overview-icon">🏆</div>
+                            <div class="overview-content">
+                                <h3 id="totalXP">0</h3>
+                                <p>Total XP</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Skills Progress -->
+                <section class="skills-section">
+                    <div class="section-header">
+                        <h2>Skills Progress</h2>
+                        <div class="view-controls">
+                            <button id="listViewBtn" class="view-btn active">List</button>
+                            <button id="treeViewBtn" class="view-btn">Tree</button>
+                        </div>
+                    </div>
+
+                    <!-- List View -->
+                    <div id="listView" class="skills-list-view">
+                        <div id="skillsList" class="skills-list">
+                            <!-- Skills will be loaded dynamically -->
+                        </div>
+                    </div>
+
+                    <!-- Tree View -->
+                    <div id="treeView" class="skills-tree-view hidden">
+                        <div id="skillsTree" class="skills-tree">
+                            <!-- Skill tree will be rendered here -->
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Activity Chart -->
+                <section class="activity-section">
+                    <h2>Learning Activity</h2>
+                    <div class="chart-container">
+                        <canvas id="activityChart" width="800" height="400"></canvas>
+                    </div>
+                    <div class="chart-legend">
+                        <div class="legend-item">
+                            <div class="legend-color" style="background-color: #3b82f6;"></div>
+                            <span>Assessments Taken</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background-color: #10b981;"></div>
+                            <span>XP Gained</span>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Performance Analytics -->
+                <section class="analytics-section">
+                    <h2>Performance Analytics</h2>
+                    <div class="analytics-grid">
+                        <div class="analytics-card">
+                            <h3>Skill Distribution</h3>
+                            <canvas id="skillDistributionChart" width="300" height="300"></canvas>
+                        </div>
+                        <div class="analytics-card">
+                            <h3>Learning Trends</h3>
+                            <div class="trends-content">
+                                <div class="trend-item">
+                                    <span class="trend-label">Most Active Day</span>
+                                    <span id="mostActiveDay" class="trend-value">Monday</span>
+                                </div>
+                                <div class="trend-item">
+                                    <span class="trend-label">Best Performance Time</span>
+                                    <span id="bestPerformanceTime" class="trend-value">Morning</span>
+                                </div>
+                                <div class="trend-item">
+                                    <span class="trend-label">Improvement Rate</span>
+                                    <span id="improvementRate" class="trend-value">+15%</span>
+                                </div>
+                                <div class="trend-item">
+                                    <span class="trend-label">Consistency Score</span>
+                                    <span id="consistencyScore" class="trend-value">8.5/10</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Recent History -->
+                <section class="history-section">
+                    <h2>Recent Assessment History</h2>
+                    <div class="history-table">
+                        <div class="table-header">
+                            <div class="header-cell">Skill</div>
+                            <div class="header-cell">Score</div>
+                            <div class="header-cell">XP</div>
+                            <div class="header-cell">Date</div>
+                            <div class="header-cell">Actions</div>
+                        </div>
+                        <div id="historyList" class="table-body">
+                            <!-- History items will be loaded dynamically -->
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </main>
+
+    <!-- Skill Detail Modal -->
+    <div id="skillDetailModal" class="modal hidden">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h2 id="modalSkillName">JavaScript Fundamentals</h2>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="skill-detail-content">
+                    <div class="skill-stats">
+                        <div class="stat-item">
+                            <label>Current Level</label>
+                            <span id="skillLevel">5</span>
+                        </div>
+                        <div class="stat-item">
+                            <label>Total XP</label>
+                            <span id="skillXP">2,500</span>
+                        </div>
+                        <div class="stat-item">
+                            <label>Assessments</label>
+                            <span id="skillAssessments">12</span>
+                        </div>
+                        <div class="stat-item">
+                            <label>Average Score</label>
+                            <span id="skillAverage">85%</span>
+                        </div>
+                    </div>
+                    
+                    <div class="skill-progress-detail">
+                        <h3>Level Progress</h3>
+                        <div class="level-progress-bar">
+                            <div id="skillProgressFill" class="progress-fill" style="width: 60%"></div>
+                        </div>
+                        <p><span id="currentXP">1,500</span> / <span id="nextLevelXP">2,500</span> XP to next level</p>
+                    </div>
+
+                    <div class="skill-history">
+                        <h3>Recent Assessments</h3>
+                        <div id="skillHistoryList" class="skill-history-list">
+                            <!-- Skill-specific history will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-actions">
+                    <button id="takeNewAssessmentBtn" class="btn btn-primary">Take New Assessment</button>
+                    <button class="btn btn-outline modal-close">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Spinner -->
+    <div id="loadingSpinner" class="loading-spinner hidden">
+        <div class="spinner"></div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <script type="module" src="/js/progress.js"></script>
+</body>
+</html>
