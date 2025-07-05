@@ -66,6 +66,7 @@
       "register": {
         "method": "POST",
         "path": "/auth/register",
+        "implemented": true,
         "request": {
           "email": "string (required)",
           "password": "string (required, min 8 chars)"
@@ -87,6 +88,7 @@
       "login": {
         "method": "POST",
         "path": "/auth/login",
+        "implemented": true,
         "request": {
           "email": "string (required)",
           "password": "string (required)"
@@ -107,6 +109,7 @@
       "verify": {
         "method": "GET",
         "path": "/auth/verify",
+        "implemented": true,
         "headers": {
           "Authorization": "Bearer {token}"
         },
@@ -126,6 +129,7 @@
       "logout": {
         "method": "GET",
         "path": "/auth/logout",
+        "implemented": true,
         "headers": {
           "Authorization": "Bearer {token}"
         },
@@ -143,6 +147,7 @@
       "categories": {
         "method": "GET",
         "path": "/skills/categories",
+        "implemented": true,
         "response": {
           "success": true,
           "data": {
@@ -167,6 +172,7 @@
       "getSkill": {
         "method": "GET",
         "path": "/skills/:id",
+        "implemented": true,
         "response": {
           "success": true,
           "data": {
@@ -186,6 +192,7 @@
       "createSkill": {
         "method": "POST",
         "path": "/skills/create",
+        "implemented": true,
         "headers": {
           "Authorization": "Bearer {token}"
         },
@@ -213,6 +220,7 @@
       "updateSkill": {
         "method": "PUT",
         "path": "/skills/:id",
+        "implemented": true,
         "headers": {
           "Authorization": "Bearer {token}"
         },
@@ -240,6 +248,7 @@
       "deleteSkill": {
         "method": "DELETE",
         "path": "/skills/:id",
+        "implemented": true,
         "headers": {
           "Authorization": "Bearer {token}"
         },
@@ -257,6 +266,7 @@
       "generate": {
         "method": "POST",
         "path": "/assessment/generate",
+        "implemented": true,
         "headers": {
           "Authorization": "Bearer {token}"
         },
@@ -293,6 +303,7 @@
       "submit": {
         "method": "POST",
         "path": "/assessment/submit",
+        "implemented": true,
         "headers": {
           "Authorization": "Bearer {token}"
         },
@@ -335,6 +346,7 @@
       "history": {
         "method": "GET",
         "path": "/assessment/history/:userId",
+        "implemented": true,
         "headers": {
           "Authorization": "Bearer {token}"
         },
@@ -362,6 +374,7 @@
       "getProgress": {
         "method": "GET",
         "path": "/progress/:userId/:skillId",
+        "implemented": true,
         "headers": {
           "Authorization": "Bearer {token}"
         },
@@ -388,6 +401,7 @@
       "updateProgress": {
         "method": "POST",
         "path": "/progress/update",
+        "implemented": true,
         "headers": {
           "Authorization": "Bearer {token}"
         },
@@ -419,6 +433,7 @@
       "getUserAchievements": {
         "method": "GET",
         "path": "/achievements/:userId",
+        "implemented": true,
         "headers": {
           "Authorization": "Bearer {token}"
         },
