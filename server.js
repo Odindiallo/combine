@@ -10,6 +10,7 @@ const skillsRoutes = require('./api/skills');
 const assessmentRoutes = require('./api/assessment');
 const progressRoutes = require('./api/progress');
 const achievementRoutes = require('./api/achievements');
+const sseRoutes = require('./api/sse');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -80,6 +81,7 @@ app.use('/api/skills', skillsRoutes);
 app.use('/api/assessment', assessmentRoutes);
 app.use('/api/progress', progressRoutes);
 app.use('/api/achievements', achievementRoutes);
+app.use('/api/sse', sseRoutes);
 
 // Catch-all for frontend routing
 app.get('*', (req, res) => {
