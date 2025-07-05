@@ -4,6 +4,13 @@ const rateLimit = require('express-rate-limit');
 const path = require('path');
 require('dotenv').config();
 
+const database = require('./db/database');
+const authRoutes = require('./api/auth');
+const skillsRoutes = require('./api/skills');
+const assessmentRoutes = require('./api/assessment');
+const progressRoutes = require('./api/progress');
+const achievementRoutes = require('./api/achievements');
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -67,81 +74,12 @@ app.get('/health', (req, res) => {
   sendResponse(res, true, { status: 'OK', message: 'SkillForge API is running' });
 });
 
-// Auth routes with rate limiting
-app.use('/api/auth', authLimiter);
-
-// Sample auth endpoint (to be expanded)
-app.post('/api/auth/register', (req, res) => {
-  const { email, password } = req.body;
-  
-  // Basic validation
-  if (!email || !password) {
-    return sendResponse(res, false, null, 'Email and password are required', 400);
-  }
-  
-  // TODO: Implement actual registration logic
-  sendResponse(res, true, {
-    user: {
-      id: 1,
-      email: email,
-      created_at: new Date().toISOString()
-    },
-    token: 'sample_jwt_token_here'
-  });
-});
-
-app.post('/api/auth/login', (req, res) => {
-  const { email, password } = req.body;
-  
-  if (!email || !password) {
-    return sendResponse(res, false, null, 'Email and password are required', 400);
-  }
-  
-  // TODO: Implement actual login logic
-  sendResponse(res, true, {
-    user: {
-      id: 1,
-      email: email
-    },
-    token: 'sample_jwt_token_here'
-  });
-});
-
-// Sample skills endpoint
-app.get('/api/skills/categories', (req, res) => {
-  // TODO: Implement actual database query
-  sendResponse(res, true, {
-    categories: [
-      {
-        name: 'Programming',
-        count: 15,
-        skills: [
-          {
-            id: 1,
-            name: 'JavaScript Fundamentals',
-            difficulty_levels: 5
-          },
-          {
-            id: 2,
-            name: 'Python Basics',
-            difficulty_levels: 4
-          }
-        ]
-      },
-      {
-        name: 'Design',
-        count: 8,
-        skills: [
-          {
-            id: 3,
-            name: 'UI/UX Principles',
-            difficulty_levels: 3
-          }
-        ]
-      }
-    ]
-  });
-});
+// API Routes
+app.use('/api/auth', authLimiter, authRoutes);
+app.use('/api/skills', skillsRoutes);
+app.use('/api/assessment', assessmentRoutes);
+app.use('/api/progress', progressRoutes);
+app.use('/api/achievements', achievementRoutes);
 
 // Catch-all for frontend routing
 app.get('*', (req, res) => {
@@ -159,7 +97,14 @@ app.use('/api/*', (req, res) => {
   sendResponse(res, false, null, 'API endpoint not found', 404);
 });
 
-app.listen(PORT, () => {
-  console.log(`SkillForge server running on http://localhost:${PORT}`);
-  console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+// Initialize database and start server
+database.connect().then(() => {
+  app.listen(PORT, () => {
+    console.log(`SkillForge server running on http://localhost:${PORT}`);
+    console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+    console.log('Database connected and initialized');
+  });
+}).catch(error => {
+  console.error('Failed to start server:', error);
+  process.exit(1);
 });
