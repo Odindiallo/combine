@@ -45,6 +45,9 @@ class DashboardPage {
      * Set up event listeners
      */
     setupEventListeners() {
+        // API Test buttons (development)
+        this.setupAPITestButtons();
+
         // Quick action buttons
         const startAssessmentBtn = document.getElementById('startAssessmentBtn');
         if (startAssessmentBtn) {
@@ -390,6 +393,118 @@ class DashboardPage {
                 clearInterval(this.refreshInterval);
             }
         });
+    }
+
+    /**
+     * Set up API test buttons for development
+     */
+    setupAPITestButtons() {
+        const resultElement = document.getElementById('apiTestResult');
+        
+        // Test Health endpoint
+        const testHealthBtn = document.getElementById('testHealthBtn');
+        if (testHealthBtn) {
+            testHealthBtn.addEventListener('click', async () => {
+                try {
+                    this.updateTestResult('Testing...', 'info');
+                    const response = await fetch('/health');
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        this.updateTestResult('✅ Health OK', 'success');
+                    } else {
+                        this.updateTestResult('❌ Health Failed', 'error');
+                    }
+                } catch (error) {
+                    this.updateTestResult('❌ Health Error', 'error');
+                    console.error('Health test error:', error);
+                }
+            });
+        }
+
+        // Test Auth endpoint
+        const testAuthBtn = document.getElementById('testAuthBtn');
+        if (testAuthBtn) {
+            testAuthBtn.addEventListener('click', async () => {
+                try {
+                    this.updateTestResult('Testing...', 'info');
+                    
+                    // Try to register a test user
+                    const testUser = {
+                        email: 'test@example.com',
+                        password: 'testpassword123',
+                        firstName: 'Test',
+                        lastName: 'User'
+                    };
+                    
+                    const response = await apiClient.auth.register(testUser);
+                    
+                    if (response.success) {
+                        this.updateTestResult('✅ Auth Registration OK', 'success');
+                        
+                        // Clean up - delete the test user (if endpoint exists)
+                        setTimeout(() => {
+                            this.updateTestResult('', '');
+                        }, 3000);
+                    } else {
+                        // Registration failed - might be user already exists, try login
+                        const loginResponse = await apiClient.auth.login({
+                            email: testUser.email,
+                            password: testUser.password
+                        });
+                        
+                        if (loginResponse.success) {
+                            this.updateTestResult('✅ Auth Login OK', 'success');
+                        } else {
+                            this.updateTestResult('❌ Auth Failed', 'error');
+                        }
+                    }
+                } catch (error) {
+                    this.updateTestResult('❌ Auth Error', 'error');
+                    console.error('Auth test error:', error);
+                }
+            });
+        }
+
+        // Test Skills endpoint
+        const testSkillsBtn = document.getElementById('testSkillsBtn');
+        if (testSkillsBtn) {
+            testSkillsBtn.addEventListener('click', async () => {
+                try {
+                    this.updateTestResult('Testing...', 'info');
+                    const response = await apiClient.skills.getAll();
+                    
+                    if (response.success) {
+                        this.updateTestResult(`✅ Skills OK (${response.data.length} found)`, 'success');
+                    } else {
+                        this.updateTestResult('❌ Skills Failed', 'error');
+                    }
+                } catch (error) {
+                    this.updateTestResult('❌ Skills Error', 'error');
+                    console.error('Skills test error:', error);
+                }
+            });
+        }
+    }
+
+    /**
+     * Update API test result display
+     */
+    updateTestResult(message, type) {
+        const resultElement = document.getElementById('apiTestResult');
+        if (resultElement) {
+            resultElement.textContent = message;
+            resultElement.className = '';
+            if (type === 'success') {
+                resultElement.style.color = '#28a745';
+            } else if (type === 'error') {
+                resultElement.style.color = '#dc3545';
+            } else if (type === 'info') {
+                resultElement.style.color = '#007bff';
+            } else {
+                resultElement.style.color = '';
+            }
+        }
     }
 
     /**

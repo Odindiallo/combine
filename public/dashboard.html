@@ -41,6 +41,18 @@
             <div class="dashboard-header">
                 <h1>Welcome back, <span id="userName">User</span>!</h1>
                 <p class="dashboard-subtitle">Continue your learning journey and track your progress</p>
+                
+                <!-- API Integration Test (Development) -->
+                <div class="api-test-section" style="margin-top: 1rem; padding: 1rem; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #007bff;">
+                    <h3 style="margin: 0 0 0.5rem 0; color: #007bff;">🔧 Development Tools</h3>
+                    <p style="margin: 0 0 1rem 0; font-size: 0.9rem; color: #666;">Test API connectivity and authentication</p>
+                    <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                        <button id="testHealthBtn" class="btn btn-outline" style="font-size: 0.9rem;">Test Health</button>
+                        <button id="testAuthBtn" class="btn btn-outline" style="font-size: 0.9rem;">Test Auth</button>
+                        <button id="testSkillsBtn" class="btn btn-outline" style="font-size: 0.9rem;">Test Skills</button>
+                        <span id="apiTestResult" style="margin-left: 1rem; font-weight: 600;"></span>
+                    </div>
+                </div>
             </div>
 
             <div class="dashboard-grid">
