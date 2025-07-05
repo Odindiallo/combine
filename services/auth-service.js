@@ -227,6 +227,11 @@ class AuthService {
     
     next();
   }
+
+  // Alias for authenticateToken to match usage in route files
+  verifyToken(req, res, next) {
+    return this.authenticateToken(req, res, next);
+  }
 }
 
 // Export singleton instance

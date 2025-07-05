@@ -83,9 +83,13 @@ app.use('/api/progress', progressRoutes);
 app.use('/api/achievements', achievementRoutes);
 app.use('/api/sse', sseRoutes);
 
-// Catch-all for frontend routing
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+// 404 handler for API routes - must be after all API routes
+app.use((req, res, next) => {
+  if (req.path.startsWith('/api/')) {
+    sendResponse(res, false, null, 'API endpoint not found', 404);
+  } else {
+    next();
+  }
 });
 
 // Error handling middleware
@@ -94,9 +98,9 @@ app.use((err, req, res, next) => {
   sendResponse(res, false, null, 'Internal server error', 500);
 });
 
-// 404 handler for API routes
-app.use('/api/*', (req, res) => {
-  sendResponse(res, false, null, 'API endpoint not found', 404);
+// Catch-all for frontend routing (must be last)
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 // Initialize database and start server

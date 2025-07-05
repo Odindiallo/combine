@@ -3,145 +3,79 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SkillForge - AI-Powered Skill Assessment</title>
-    <link rel="stylesheet" href="/css/main.css">
-    <link rel="stylesheet" href="/css/pages/index.css">
+    <title>SkillForge API</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .status {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 4px;
+            display: inline-block;
+            margin-bottom: 20px;
+        }
+        .endpoint {
+            background-color: #f8f9fa;
+            padding: 10px;
+            margin: 5px 0;
+            border-left: 3px solid #007bff;
+            font-family: monospace;
+        }
+        .section {
+            margin: 20px 0;
+        }
+        .section h2 {
+            color: #555;
+            font-size: 1.2em;
+            margin-bottom: 10px;
+        }
+    </style>
 </head>
 <body>
-    <nav class="navbar">
-        <div class="nav-container">
-            <div class="nav-brand">
-                <h1>SkillForge</h1>
-            </div>
-            <div class="nav-links">
-                <a href="#features" class="nav-link">Features</a>
-                <a href="#about" class="nav-link">About</a>
-                <button id="loginBtn" class="btn btn-outline">Login</button>
-                <button id="registerBtn" class="btn btn-primary">Sign Up</button>
-            </div>
-            <div class="mobile-menu-toggle">
-                <span></span>
-                <span></span>
-                <span></span>
-            </div>
+    <div class="container">
+        <h1>SkillForge API</h1>
+        <div class="status">Backend Running</div>
+        
+        <p>This is the SkillForge backend API server. The frontend application should be served separately.</p>
+        
+        <div class="section">
+            <h2>API Health Check</h2>
+            <div class="endpoint">GET /health</div>
         </div>
-    </nav>
-
-    <main class="main-content">
-        <section class="hero">
-            <div class="hero-container">
-                <div class="hero-content">
-                    <h1 class="hero-title">Master Your Skills with AI-Powered Assessments</h1>
-                    <p class="hero-subtitle">Discover your strengths, identify areas for improvement, and track your progress with intelligent skill assessments tailored to your learning journey.</p>
-                    <div class="hero-actions">
-                        <button id="getStartedBtn" class="btn btn-primary btn-large">Get Started Free</button>
-                        <button id="learnMoreBtn" class="btn btn-outline btn-large">Learn More</button>
-                    </div>
-                </div>
-                <div class="hero-visual">
-                    <div class="skill-tree-preview">
-                        <div class="skill-node completed"></div>
-                        <div class="skill-node in-progress"></div>
-                        <div class="skill-node locked"></div>
-                        <div class="skill-connection"></div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <section id="features" class="features">
-            <div class="container">
-                <h2 class="section-title">Why Choose SkillForge?</h2>
-                <div class="features-grid">
-                    <div class="feature-card">
-                        <div class="feature-icon">🤖</div>
-                        <h3>AI-Generated Questions</h3>
-                        <p>Dynamic assessments powered by artificial intelligence that adapt to your skill level and learning pace.</p>
-                    </div>
-                    <div class="feature-card">
-                        <div class="feature-icon">📊</div>
-                        <h3>Visual Progress Tracking</h3>
-                        <p>Interactive skill trees and progress charts that make learning visible and engaging.</p>
-                    </div>
-                    <div class="feature-card">
-                        <div class="feature-icon">🏆</div>
-                        <h3>Achievement System</h3>
-                        <p>Unlock achievements and celebrate milestones as you advance through your learning journey.</p>
-                    </div>
-                    <div class="feature-card">
-                        <div class="feature-icon">⚡</div>
-                        <h3>Real-Time Feedback</h3>
-                        <p>Instant results and explanations help you learn from mistakes and reinforce correct understanding.</p>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <section id="about" class="about">
-            <div class="container">
-                <h2 class="section-title">Start Your Learning Journey</h2>
-                <p class="about-text">SkillForge combines cutting-edge AI technology with proven learning methodologies to create personalized skill assessments. Whether you're a beginner or an expert, our platform adapts to your needs and helps you achieve your goals.</p>
-            </div>
-        </section>
-    </main>
-
-    <!-- Login Modal -->
-    <div id="loginModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>Welcome Back</h2>
-                <button class="modal-close">&times;</button>
-            </div>
-            <form id="loginForm" class="auth-form">
-                <div class="form-group">
-                    <label for="loginEmail">Email</label>
-                    <input type="email" id="loginEmail" name="email" required>
-                </div>
-                <div class="form-group">
-                    <label for="loginPassword">Password</label>
-                    <input type="password" id="loginPassword" name="password" required>
-                </div>
-                <button type="submit" class="btn btn-primary btn-full">Login</button>
-                <p class="auth-switch">Don't have an account? <a href="#" id="switchToRegister">Sign up</a></p>
-            </form>
+        
+        <div class="section">
+            <h2>API Documentation</h2>
+            <p>Please refer to <code>/docs/api-contract.json</code> for complete API documentation.</p>
+        </div>
+        
+        <div class="section">
+            <h2>Available Endpoints</h2>
+            <ul>
+                <li>Authentication: <code>/api/auth/*</code></li>
+                <li>Skills: <code>/api/skills/*</code></li>
+                <li>Assessment: <code>/api/assessment/*</code></li>
+                <li>Progress: <code>/api/progress/*</code></li>
+                <li>Achievements: <code>/api/achievements/*</code></li>
+                <li>Server-Sent Events: <code>/api/sse/*</code></li>
+            </ul>
         </div>
     </div>
-
-    <!-- Register Modal -->
-    <div id="registerModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>Create Account</h2>
-                <button class="modal-close">&times;</button>
-            </div>
-            <form id="registerForm" class="auth-form">
-                <div class="form-group">
-                    <label for="registerEmail">Email</label>
-                    <input type="email" id="registerEmail" name="email" required>
-                </div>
-                <div class="form-group">
-                    <label for="registerPassword">Password</label>
-                    <input type="password" id="registerPassword" name="password" required minlength="8">
-                    <small>At least 8 characters with uppercase, lowercase, and number</small>
-                </div>
-                <div class="form-group">
-                    <label for="confirmPassword">Confirm Password</label>
-                    <input type="password" id="confirmPassword" name="confirmPassword" required>
-                </div>
-                <button type="submit" class="btn btn-primary btn-full">Create Account</button>
-                <p class="auth-switch">Already have an account? <a href="#" id="switchToLogin">Login</a></p>
-            </form>
-        </div>
-    </div>
-
-    <!-- Loading Spinner -->
-    <div id="loadingSpinner" class="loading-spinner hidden">
-        <div class="spinner"></div>
-    </div>
-
-    <!-- Toast Notifications -->
-    <div id="toastContainer" class="toast-container"></div>
-
-    <script type="module" src="/js/main.js"></script>
 </body>
 </html>
