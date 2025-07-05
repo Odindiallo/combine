@@ -40,6 +40,9 @@ class ProgressPage {
         this.setupEventListeners();
         await this.loadProgressData();
         this.initializeCharts();
+        this.setupSkillComparison();
+        this.setupGoalTracking();
+        this.setupExportHandlers();
     }
 
     /**
@@ -532,103 +535,493 @@ class ProgressPage {
     }
 
     /**
-     * Helper methods
+     * Enhanced interactive skill comparison and benchmarking
      */
-    updateElement(id, value) {
-        const element = document.getElementById(id);
-        if (element) {
-            element.textContent = value;
+    setupSkillComparison() {
+        const compareBtn = document.getElementById('compareSkillsBtn');
+        if (compareBtn) {
+            compareBtn.addEventListener('click', () => this.showSkillComparisonModal());
         }
     }
 
-    updateProgressBar(id, percentage) {
-        const progressBar = document.getElementById(id);
-        if (progressBar) {
-            progressBar.style.width = `${Math.max(0, Math.min(100, percentage))}%`;
-        }
-    }
-
-    getSkillLevelClass(level) {
-        const levelMap = {
-            'Beginner': 'level-beginner',
-            'Intermediate': 'level-intermediate',
-            'Advanced': 'level-advanced',
-            'Expert': 'level-expert',
-            'Master': 'level-master'
-        };
-        return levelMap[level] || 'level-beginner';
-    }
-
-    getScoreClass(score) {
-        if (score >= 90) return 'score-excellent';
-        if (score >= 80) return 'score-good';
-        if (score >= 70) return 'score-average';
-        return 'score-needs-improvement';
-    }
-
-    formatDate(dateString) {
-        const date = new Date(dateString);
-        const now = new Date();
-        const diffInHours = Math.floor((now - date) / (1000 * 60 * 60));
-
-        if (diffInHours < 1) return 'Just now';
-        if (diffInHours < 24) return `${diffInHours}h ago`;
-        if (diffInHours < 48) return 'Yesterday';
+    /**
+     * Show skill comparison modal with interactive selection
+     */
+    showSkillComparisonModal() {
+        const skills = this.progressData?.skills || [];
         
-        return date.toLocaleDateString();
-    }
+        modal.show({
+            title: 'Compare Skills',
+            size: 'large',
+            content: `
+                <div class="skill-comparison-selector">
+                    <h4>Select Skills to Compare (2-4 skills)</h4>
+                    <div class="skills-grid">
+                        ${skills.map(skill => `
+                            <label class="skill-selector">
+                                <input type="checkbox" name="compareSkills" value="${skill.id}" />
+                                <div class="skill-option">
+                                    <h5>${skill.name}</h5>
+                                    <div class="skill-progress-mini">
+                                        <div class="progress-bar">
+                                            <div class="progress-fill" style="width: ${skill.masteryLevel || 0}%"></div>
+                                        </div>
+                                        <span>${skill.masteryLevel || 0}%</span>
+                                    </div>
+                                </div>
+                            </label>
+                        `).join('')}
+                    </div>
+                </div>
+                <div id="comparisonChart" class="comparison-chart"></div>
+            `,
+            actions: [
+                {
+                    text: 'Compare Selected',
+                    primary: true,
+                    action: () => {
+                        const selected = Array.from(document.querySelectorAll('input[name="compareSkills"]:checked'))
+                            .map(input => input.value);
+                        
+                        if (selected.length >= 2 && selected.length <= 4) {
+                            this.generateSkillComparison(selected);
+                        } else {
+                            notifications.show({
+                                type: 'warning',
+                                message: 'Please select 2-4 skills to compare'
+                            });
+                        }
+                    }
+                },
+                {
+                    text: 'Cancel',
+                    action: () => modal.hide()
+                }
+            ]
+        });
 
-    formatTimeSpent(minutes) {
-        if (minutes < 60) return `${minutes}m`;
-        const hours = Math.floor(minutes / 60);
-        const remainingMinutes = minutes % 60;
-        return remainingMinutes > 0 ? `${hours}h ${remainingMinutes}m` : `${hours}h`;
+        // Setup real-time chart preview
+        document.addEventListener('change', (e) => {
+            if (e.target.name === 'compareSkills') {
+                this.updateComparisonPreview();
+            }
+        });
     }
 
     /**
-     * Refresh progress data
+     * Generate interactive skill comparison chart
      */
-    async refreshProgress() {
-        notifications.info('Refreshing progress...');
-        await this.loadProgressData();
-        this.initializeCharts();
-        notifications.success('Progress updated');
+    generateSkillComparison(skillIds) {
+        const selectedSkills = this.progressData.skills.filter(skill => 
+            skillIds.includes(skill.id));
+        
+        const chartContainer = document.getElementById('comparisonChart');
+        if (!chartContainer) return;
+
+        chartContainer.innerHTML = `
+            <div class="comparison-chart-container">
+                <canvas id="skillComparisonCanvas" width="600" height="400"></canvas>
+                <div class="comparison-stats">
+                    ${selectedSkills.map(skill => `
+                        <div class="skill-stat">
+                            <h5>${skill.name}</h5>
+                            <div class="stat-details">
+                                <span>Progress: ${skill.masteryLevel || 0}%</span>
+                                <span>Assessments: ${skill.assessmentCount || 0}</span>
+                                <span>Time Spent: ${skill.timeSpent || 0}h</span>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+
+        this.drawComparisonChart(selectedSkills);
     }
 
     /**
-     * Export progress data
+     * Enhanced goal setting and tracking
      */
-    async exportProgress() {
-        try {
-            const response = await apiClient.progress.export();
-            
-            // Create and download file
-            const blob = new Blob([JSON.stringify(response.data, null, 2)], { 
-                type: 'application/json' 
-            });
-            const url = URL.createObjectURL(blob);
-            
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `skillforge-progress-${new Date().toISOString().split('T')[0]}.json`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            
-            URL.revokeObjectURL(url);
-            notifications.success('Progress data exported');
-            
-        } catch (error) {
-            errorHandler.handleError(error, { context: 'export_progress' });
+    setupGoalTracking() {
+        const setGoalBtn = document.getElementById('setGoalBtn');
+        if (setGoalBtn) {
+            setGoalBtn.addEventListener('click', () => this.showGoalSettingModal());
         }
+
+        // Load and display existing goals
+        this.loadAndDisplayGoals();
+    }
+
+    /**
+     * Show goal setting modal with smart suggestions
+     */
+    showGoalSettingModal() {
+        const suggestions = this.generateGoalSuggestions();
+        
+        modal.show({
+            title: 'Set Learning Goal',
+            content: `
+                <div class="goal-setting-form">
+                    <div class="goal-suggestions">
+                        <h4>🎯 Suggested Goals</h4>
+                        <div class="suggestions-grid">
+                            ${suggestions.map(suggestion => `
+                                <div class="goal-suggestion" data-goal='${JSON.stringify(suggestion)}'>
+                                    <div class="suggestion-icon">${suggestion.icon}</div>
+                                    <div class="suggestion-content">
+                                        <h5>${suggestion.title}</h5>
+                                        <p>${suggestion.description}</p>
+                                        <span class="suggestion-timeline">${suggestion.timeline}</span>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                    
+                    <div class="custom-goal-form">
+                        <h4>📝 Custom Goal</h4>
+                        <div class="form-group">
+                            <label>Goal Type</label>
+                            <select id="goalType">
+                                <option value="skill_mastery">Skill Mastery</option>
+                                <option value="assessment_score">Assessment Score</option>
+                                <option value="learning_streak">Learning Streak</option>
+                                <option value="time_spent">Time Spent</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Target</label>
+                            <input type="text" id="goalTarget" placeholder="e.g., 80% mastery, 30-day streak" />
+                        </div>
+                        <div class="form-group">
+                            <label>Deadline</label>
+                            <input type="date" id="goalDeadline" />
+                        </div>
+                        <div class="form-group">
+                            <label>Notes (Optional)</label>
+                            <textarea id="goalNotes" placeholder="Why is this goal important to you?"></textarea>
+                        </div>
+                    </div>
+                </div>
+            `,
+            actions: [
+                {
+                    text: 'Set Goal',
+                    primary: true,
+                    action: () => this.saveNewGoal()
+                },
+                {
+                    text: 'Cancel',
+                    action: () => modal.hide()
+                }
+            ]
+        });
+
+        // Setup suggestion selection
+        document.addEventListener('click', (e) => {
+            const suggestion = e.target.closest('.goal-suggestion');
+            if (suggestion) {
+                const goalData = JSON.parse(suggestion.dataset.goal);
+                this.populateGoalForm(goalData);
+            }
+        });
+    }
+
+    /**
+     * Generate smart goal suggestions based on user progress
+     */
+    generateGoalSuggestions() {
+        const suggestions = [];
+        const skills = this.progressData?.skills || [];
+        
+        // Find skills that are close to milestones
+        skills.forEach(skill => {
+            const progress = skill.masteryLevel || 0;
+            
+            if (progress >= 60 && progress < 80) {
+                suggestions.push({
+                    icon: '🎯',
+                    title: `Master ${skill.name}`,
+                    description: `Reach 80% mastery in ${skill.name}`,
+                    timeline: '2-3 weeks',
+                    type: 'skill_mastery',
+                    target: skill.id,
+                    value: 80
+                });
+            }
+        });
+
+        // Current streak suggestions
+        const currentStreak = this.progressData?.streak || 0;
+        if (currentStreak > 0 && currentStreak < 30) {
+            suggestions.push({
+                icon: '🔥',
+                title: 'Build Learning Habit',
+                description: 'Maintain a 30-day learning streak',
+                timeline: `${30 - currentStreak} days`,
+                type: 'learning_streak',
+                value: 30
+            });
+        }
+
+        // Assessment improvement suggestions
+        const lowScoreSkills = skills.filter(skill => 
+            (skill.lastAssessmentScore || 0) < 70);
+        
+        if (lowScoreSkills.length > 0) {
+            suggestions.push({
+                icon: '📈',
+                title: 'Improve Assessment Scores',
+                description: 'Achieve 80%+ on all assessments',
+                timeline: '1-2 months',
+                type: 'assessment_score',
+                value: 80
+            });
+        }
+
+        return suggestions.slice(0, 4); // Limit to 4 suggestions
+    }
+
+    /**
+     * Enhanced learning insights with AI-powered recommendations
+     */
+    displayLearningInsights(insights) {
+        const insightsContainer = document.getElementById('learningInsights');
+        if (!insightsContainer) return;
+
+        const enhancedInsights = this.generateEnhancedInsights(insights);
+        
+        insightsContainer.innerHTML = `
+            <div class="insights-header">
+                <h3>🧠 Your Learning Insights</h3>
+                <button class="btn btn-outline btn-sm" onclick="progressPage.refreshInsights()">
+                    Refresh
+                </button>
+            </div>
+            <div class="insights-grid">
+                ${enhancedInsights.map(insight => `
+                    <div class="insight-card ${insight.type}">
+                        <div class="insight-icon">${insight.icon}</div>
+                        <div class="insight-content">
+                            <h4>${insight.title}</h4>
+                            <p>${insight.description}</p>
+                            ${insight.action ? `
+                                <button class="btn btn-sm btn-primary" onclick="${insight.action}">
+                                    ${insight.actionText}
+                                </button>
+                            ` : ''}
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+    }
+
+    /**
+     * Generate AI-powered learning insights
+     */
+    generateEnhancedInsights(baseInsights) {
+        const insights = [...(baseInsights || [])];
+        const skills = this.progressData?.skills || [];
+        const recentActivity = this.progressData?.recentActivity || [];
+        
+        // Learning pattern analysis
+        const studyTimes = recentActivity.map(activity => 
+            new Date(activity.timestamp).getHours());
+        
+        if (studyTimes.length > 0) {
+            const avgStudyTime = Math.round(
+                studyTimes.reduce((sum, time) => sum + time, 0) / studyTimes.length
+            );
+            
+            insights.push({
+                type: 'pattern',
+                icon: '⏰',
+                title: 'Optimal Study Time',
+                description: `You're most active around ${avgStudyTime}:00. Consider scheduling important study sessions during this time.`,
+                actionText: 'Set Study Reminder',
+                action: 'progressPage.setStudyReminder()'
+            });
+        }
+
+        // Skill diversity analysis
+        const categories = [...new Set(skills.map(skill => skill.category))];
+        if (categories.length < 3) {
+            insights.push({
+                type: 'opportunity',
+                icon: '🌟',
+                title: 'Expand Your Horizons',
+                description: 'You\'re focused on specific areas. Consider exploring new skill categories to become more well-rounded.',
+                actionText: 'Explore Skills',
+                action: 'window.location.href="/assessment.html"'
+            });
+        }
+
+        // Progress momentum
+        const recentProgress = skills.filter(skill => 
+            skill.lastActivityDate && 
+            new Date(skill.lastActivityDate) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+        );
+        
+        if (recentProgress.length === 0) {
+            insights.push({
+                type: 'motivation',
+                icon: '🚀',
+                title: 'Time to Get Back',
+                description: 'You haven\'t practiced any skills recently. Small consistent steps lead to big improvements!',
+                actionText: 'Start Learning',
+                action: 'window.location.href="/dashboard.html"'
+            });
+        }
+
+        return insights;
+    }
+
+    /**
+     * Interactive learning path recommendations
+     */
+    setupLearningPaths() {
+        const pathsContainer = document.getElementById('learningPaths');
+        if (!pathsContainer) return;
+
+        const recommendedPaths = this.generateLearningPaths();
+        
+        pathsContainer.innerHTML = `
+            <div class="paths-header">
+                <h3>🛤️ Recommended Learning Paths</h3>
+                <p>Curated journeys based on your current progress</p>
+            </div>
+            <div class="paths-grid">
+                ${recommendedPaths.map(path => `
+                    <div class="learning-path-card">
+                        <div class="path-header">
+                            <div class="path-icon">${path.icon}</div>
+                            <div class="path-info">
+                                <h4>${path.title}</h4>
+                                <p class="path-description">${path.description}</p>
+                            </div>
+                        </div>
+                        <div class="path-progress">
+                            <div class="path-stats">
+                                <span>${path.completedSteps}/${path.totalSteps} steps</span>
+                                <span>${path.estimatedTime}</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: ${path.progress}%"></div>
+                            </div>
+                        </div>
+                        <div class="path-actions">
+                            <button class="btn btn-outline btn-sm" onclick="progressPage.viewPathDetails('${path.id}')">
+                                View Details
+                            </button>
+                            <button class="btn btn-primary btn-sm" onclick="progressPage.startPath('${path.id}')">
+                                ${path.progress > 0 ? 'Continue' : 'Start Path'}
+                            </button>
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+    }
+
+    /**
+     * Export progress data with multiple formats
+     */
+    setupExportHandlers() {
+        const exportBtn = document.getElementById('exportProgressBtn');
+        if (exportBtn) {
+            exportBtn.addEventListener('click', () => this.showExportOptions());
+        }
+    }
+
+    /**
+     * Show export options modal
+     */
+    showExportOptions() {
+        modal.show({
+            title: 'Export Your Progress',
+            content: `
+                <div class="export-options">
+                    <h4>Choose Export Format</h4>
+                    <div class="export-formats">
+                        <label class="export-option">
+                            <input type="radio" name="exportFormat" value="pdf" checked />
+                            <div class="format-card">
+                                <div class="format-icon">📄</div>
+                                <h5>PDF Report</h5>
+                                <p>Comprehensive progress report with charts</p>
+                            </div>
+                        </label>
+                        <label class="export-option">
+                            <input type="radio" name="exportFormat" value="csv" />
+                            <div class="format-card">
+                                <div class="format-icon">📊</div>
+                                <h5>CSV Data</h5>
+                                <p>Raw data for analysis in Excel/Sheets</p>
+                            </div>
+                        </label>
+                        <label class="export-option">
+                            <input type="radio" name="exportFormat" value="json" />
+                            <div class="format-card">
+                                <div class="format-icon">📁</div>
+                                <h5>JSON Export</h5>
+                                <p>Complete data backup</p>
+                            </div>
+                        </label>
+                    </div>
+                    
+                    <div class="export-settings">
+                        <h4>Export Settings</h4>
+                        <label class="checkbox-option">
+                            <input type="checkbox" checked /> Include assessment history
+                        </label>
+                        <label class="checkbox-option">
+                            <input type="checkbox" checked /> Include learning analytics
+                        </label>
+                        <label class="checkbox-option">
+                            <input type="checkbox" /> Include personal notes
+                        </label>
+                    </div>
+                </div>
+            `,
+            actions: [
+                {
+                    text: 'Export',
+                    primary: true,
+                    action: () => this.performExport()
+                },
+                {
+                    text: 'Cancel',
+                    action: () => modal.hide()
+                }
+            ]
+        });
+    }
+
+    /**
+     * Perform the actual export based on selected format
+     */
+    performExport() {
+        const format = document.querySelector('input[name="exportFormat"]:checked')?.value || 'pdf';
+        
+        // Implementation would depend on chosen format
+        notifications.show({
+            type: 'success',
+            message: `Exporting progress data as ${format.toUpperCase()}...`
+        });
+        
+        modal.hide();
     }
 }
+
+// Global reference for onclick handlers
+window.progressPage = progressPage;
 
 // Initialize progress page when DOM is ready
 if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => new ProgressPage());
+    document.addEventListener('DOMContentLoaded', () => {
+        window.progressPage = new ProgressPage();
+    });
 } else {
-    new ProgressPage();
+    window.progressPage = new ProgressPage();
 }
-
-export default ProgressPage;

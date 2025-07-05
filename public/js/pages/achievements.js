@@ -40,6 +40,9 @@ class AchievementsPage {
         this.setupEventListeners();
         await this.loadAchievementsData();
         this.initializeAnimations();
+        this.setupAchievementComparison();
+        this.setupAchievementLeaderboard();
+        this.setupAchievementChallenges();
     }
 
     /**
@@ -547,60 +550,507 @@ class AchievementsPage {
     }
 
     /**
-     * Helper methods
+     * Enhanced achievement unlock animation with celebration effects
      */
-    updateElement(id, value) {
-        const element = document.getElementById(id);
-        if (element) {
-            element.textContent = value;
+    static showAchievementUnlock(achievement) {
+        // Create full-screen achievement notification
+        const overlay = document.createElement('div');
+        overlay.className = 'achievement-unlock-overlay';
+        overlay.innerHTML = `
+            <div class="achievement-unlock-modal">
+                <div class="unlock-animation">
+                    <div class="achievement-burst">
+                        <div class="burst-ray"></div>
+                        <div class="burst-ray"></div>
+                        <div class="burst-ray"></div>
+                        <div class="burst-ray"></div>
+                        <div class="burst-ray"></div>
+                        <div class="burst-ray"></div>
+                        <div class="burst-ray"></div>
+                        <div class="burst-ray"></div>
+                    </div>
+                    <div class="achievement-badge-unlock">
+                        <div class="badge-glow"></div>
+                        <div class="badge-icon-unlock">${achievement.icon || '🏆'}</div>
+                    </div>
+                </div>
+                <div class="unlock-content">
+                    <h1 class="unlock-title">Achievement Unlocked!</h1>
+                    <h2 class="achievement-name">${achievement.name}</h2>
+                    <p class="achievement-description">${achievement.description}</p>
+                    <div class="achievement-rewards">
+                        <div class="xp-reward">
+                            <span class="xp-icon">⭐</span>
+                            <span class="xp-amount">+${achievement.xpReward} XP</span>
+                        </div>
+                        ${achievement.bonusReward ? `
+                            <div class="bonus-reward">
+                                <span class="bonus-icon">${achievement.bonusReward.icon}</span>
+                                <span class="bonus-text">${achievement.bonusReward.text}</span>
+                            </div>
+                        ` : ''}
+                    </div>
+                    <div class="unlock-actions">
+                        <button class="btn btn-primary" onclick="this.closest('.achievement-unlock-overlay').remove()">
+                            Awesome!
+                        </button>
+                        <button class="btn btn-outline" onclick="achievementsPage.shareUnlock('${achievement.id}')">
+                            Share Achievement
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(overlay);
+
+        // Trigger celebration effects
+        this.triggerCelebrationEffects();
+
+        // Auto-remove after 10 seconds if not closed
+        setTimeout(() => {
+            if (overlay.parentElement) {
+                overlay.style.opacity = '0';
+                setTimeout(() => overlay.remove(), 500);
+            }
+        }, 10000);
+    }
+
+    /**
+     * Trigger celebration effects (confetti, particles, sound)
+     */
+    static triggerCelebrationEffects() {
+        // Create confetti explosion
+        for (let i = 0; i < 100; i++) {
+            this.createConfettiParticle();
+        }
+
+        // Create sparkle effects
+        for (let i = 0; i < 50; i++) {
+            this.createSparkleParticle();
+        }
+
+        // Trigger achievement sound (if enabled)
+        this.playAchievementSound();
+    }
+
+    /**
+     * Create confetti particle animation
+     */
+    static createConfettiParticle() {
+        const confetti = document.createElement('div');
+        confetti.className = 'confetti-particle';
+        confetti.style.left = Math.random() * 100 + 'vw';
+        confetti.style.backgroundColor = this.getRandomConfettiColor();
+        confetti.style.animationDelay = Math.random() * 2 + 's';
+        confetti.style.animationDuration = (2 + Math.random() * 3) + 's';
+
+        document.body.appendChild(confetti);
+
+        // Remove after animation
+        setTimeout(() => confetti.remove(), 5000);
+    }
+
+    /**
+     * Create sparkle particle animation
+     */
+    static createSparkleParticle() {
+        const sparkle = document.createElement('div');
+        sparkle.className = 'sparkle-particle';
+        sparkle.innerHTML = '✨';
+        sparkle.style.left = Math.random() * 100 + 'vw';
+        sparkle.style.top = Math.random() * 100 + 'vh';
+        sparkle.style.animationDelay = Math.random() * 2 + 's';
+
+        document.body.appendChild(sparkle);
+
+        setTimeout(() => sparkle.remove(), 3000);
+    }
+
+    /**
+     * Interactive achievement comparison tool
+     */
+    setupAchievementComparison() {
+        const compareBtn = document.getElementById('compareAchievementsBtn');
+        if (compareBtn) {
+            compareBtn.addEventListener('click', () => this.showComparisonModal());
         }
     }
 
-    updateProgressBar(id, percentage) {
-        const progressBar = document.getElementById(id);
-        if (progressBar) {
-            progressBar.style.width = `${Math.max(0, Math.min(100, percentage))}%`;
-        }
-    }
-
-    formatDate(dateString) {
-        const date = new Date(dateString);
-        const now = new Date();
-        const diffInHours = Math.floor((now - date) / (1000 * 60 * 60));
-
-        if (diffInHours < 1) return 'Just now';
-        if (diffInHours < 24) return `${diffInHours}h ago`;
-        if (diffInHours < 48) return 'Yesterday';
-        
-        return date.toLocaleDateString();
-    }
-
-    formatFullDate(dateString) {
-        return new Date(dateString).toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric'
+    /**
+     * Show achievement comparison modal
+     */
+    showComparisonModal() {
+        modal.show({
+            title: 'Compare Achievements',
+            size: 'large',
+            content: `
+                <div class="achievement-comparison">
+                    <div class="comparison-selector">
+                        <h4>Select achievements to compare</h4>
+                        <div class="user-selector">
+                            <input type="text" id="compareUsername" placeholder="Enter username to compare with" />
+                            <button class="btn btn-outline" onclick="achievementsPage.loadUserForComparison()">
+                                Load User
+                            </button>
+                        </div>
+                    </div>
+                    <div id="comparisonResults" class="comparison-results">
+                        <!-- Comparison results will be loaded here -->
+                    </div>
+                </div>
+            `,
+            actions: [
+                {
+                    text: 'Close',
+                    action: () => modal.hide()
+                }
+            ]
         });
     }
 
     /**
-     * Refresh achievements data
+     * Enhanced achievement progress tracking with micro-interactions
      */
-    async refreshAchievements() {
-        notifications.info('Refreshing achievements...');
-        await this.loadAchievementsData();
-        this.initializeAnimations();
-        notifications.success('Achievements updated');
+    updateAchievementProgress(achievementId, newProgress) {
+        const achievementCard = document.querySelector(`[data-achievement-id="${achievementId}"]`);
+        if (!achievementCard) return;
+
+        const progressBar = achievementCard.querySelector('.achievement-progress .progress-fill');
+        const progressText = achievementCard.querySelector('.progress-text');
+
+        if (progressBar && progressText) {
+            // Animate progress bar
+            const currentWidth = parseFloat(progressBar.style.width) || 0;
+            this.animateProgress(progressBar, currentWidth, newProgress);
+
+            // Update progress text with count-up animation
+            this.animateProgressText(progressText, Math.round(currentWidth), Math.round(newProgress));
+
+            // Add glow effect if near completion
+            if (newProgress >= 90) {
+                achievementCard.classList.add('near-completion');
+            }
+
+            // Trigger unlock if completed
+            if (newProgress >= 100) {
+                setTimeout(() => {
+                    this.unlockAchievement(achievementId);
+                }, 1000);
+            }
+        }
+    }
+
+    /**
+     * Animate progress bar with easing
+     */
+    animateProgress(element, from, to) {
+        const duration = 1000;
+        const start = performance.now();
+
+        const animate = (currentTime) => {
+            const elapsed = currentTime - start;
+            const progress = Math.min(elapsed / duration, 1);
+
+            // Easing function (ease-out-cubic)
+            const easeOut = 1 - Math.pow(1 - progress, 3);
+            const currentValue = from + (to - from) * easeOut;
+
+            element.style.width = currentValue + '%';
+
+            if (progress < 1) {
+                requestAnimationFrame(animate);
+            }
+        };
+
+        requestAnimationFrame(animate);
+    }
+
+    /**
+     * Animate progress text with count-up effect
+     */
+    animateProgressText(element, from, to) {
+        const duration = 1000;
+        const start = performance.now();
+
+        const animate = (currentTime) => {
+            const elapsed = currentTime - start;
+            const progress = Math.min(elapsed / duration, 1);
+
+            const currentValue = Math.round(from + (to - from) * progress);
+            element.textContent = currentValue + '% complete';
+
+            if (progress < 1) {
+                requestAnimationFrame(animate);
+            }
+        };
+
+        requestAnimationFrame(animate);
+    }
+
+    /**
+     * Achievement leaderboard functionality
+     */
+    setupAchievementLeaderboard() {
+        const leaderboardBtn = document.getElementById('viewLeaderboardBtn');
+        if (leaderboardBtn) {
+            leaderboardBtn.addEventListener('click', () => this.showLeaderboardModal());
+        }
+    }
+
+    /**
+     * Show achievement leaderboard modal
+     */
+    showLeaderboardModal() {
+        modal.show({
+            title: '🏆 Achievement Leaderboard',
+            size: 'large',
+            content: `
+                <div class="achievement-leaderboard">
+                    <div class="leaderboard-filters">
+                        <select id="leaderboardCategory">
+                            <option value="all">All Categories</option>
+                            <option value="learning">Learning</option>
+                            <option value="assessment">Assessment</option>
+                            <option value="progress">Progress</option>
+                            <option value="social">Social</option>
+                        </select>
+                        <select id="leaderboardTimeframe">
+                            <option value="all-time">All Time</option>
+                            <option value="month">This Month</option>
+                            <option value="week">This Week</option>
+                        </select>
+                    </div>
+                    <div id="leaderboardContent" class="leaderboard-content">
+                        <div class="loading-spinner">Loading leaderboard...</div>
+                    </div>
+                </div>
+            `,
+            actions: [
+                {
+                    text: 'Close',
+                    action: () => modal.hide()
+                }
+            ]
+        });
+
+        this.loadLeaderboardData();
+    }
+
+    /**
+     * Interactive achievement hunt/challenges
+     */
+    setupAchievementChallenges() {
+        const challengesBtn = document.getElementById('activeChallengesBtn');
+        if (challengesBtn) {
+            challengesBtn.addEventListener('click', () => this.showActiveChallenges());
+        }
+    }
+
+    /**
+     * Show active achievement challenges
+     */
+    showActiveChallenges() {
+        modal.show({
+            title: '🎯 Active Challenges',
+            content: `
+                <div class="achievement-challenges">
+                    <div class="challenges-header">
+                        <p>Complete these special challenges to earn exclusive achievements!</p>
+                    </div>
+                    <div id="challengesList" class="challenges-list">
+                        ${this.generateChallengesList()}
+                    </div>
+                </div>
+            `,
+            actions: [
+                {
+                    text: 'Close',
+                    action: () => modal.hide()
+                }
+            ]
+        });
+    }
+
+    /**
+     * Generate active challenges list
+     */
+    generateChallengesList() {
+        const challenges = [
+            {
+                id: 'weekly_assessor',
+                title: 'Weekly Assessor',
+                description: 'Complete 5 assessments this week',
+                progress: 2,
+                target: 5,
+                reward: '🏅 Assessment Master Badge',
+                timeLeft: '3 days'
+            },
+            {
+                id: 'streak_maintainer',
+                title: 'Streak Maintainer',
+                description: 'Maintain a 7-day learning streak',
+                progress: 4,
+                target: 7,
+                reward: '🔥 Streak Champion Badge',
+                timeLeft: '3 days'
+            },
+            {
+                id: 'skill_explorer',
+                title: 'Skill Explorer',
+                description: 'Try assessments in 3 different categories',
+                progress: 1,
+                target: 3,
+                reward: '🌟 Explorer Badge',
+                timeLeft: '1 week'
+            }
+        ];
+
+        return challenges.map(challenge => `
+            <div class="challenge-card">
+                <div class="challenge-header">
+                    <h4>${challenge.title}</h4>
+                    <span class="time-left">${challenge.timeLeft} left</span>
+                </div>
+                <p class="challenge-description">${challenge.description}</p>
+                <div class="challenge-progress">
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: ${(challenge.progress / challenge.target) * 100}%"></div>
+                    </div>
+                    <span class="progress-text">${challenge.progress}/${challenge.target}</span>
+                </div>
+                <div class="challenge-reward">
+                    <span class="reward-icon">🎁</span>
+                    <span class="reward-text">${challenge.reward}</span>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    /**
+     * Achievement sharing with social integration
+     */
+    shareUnlock(achievementId) {
+        const achievement = this.achievementsData.achievements.find(a => a.id === achievementId);
+        if (!achievement) return;
+
+        modal.show({
+            title: 'Share Your Achievement',
+            content: `
+                <div class="achievement-share">
+                    <div class="share-preview">
+                        <div class="achievement-card-share">
+                            <div class="achievement-badge">${achievement.icon || '🏆'}</div>
+                            <h3>I just unlocked "${achievement.name}"!</h3>
+                            <p>${achievement.description}</p>
+                            <div class="share-stats">
+                                <span>+${achievement.xpReward} XP earned</span>
+                                <span>SkillForge Learning Platform</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="share-options">
+                        <div class="share-buttons">
+                            <button class="share-btn social-twitter" onclick="achievementsPage.shareToSocial('twitter', '${achievementId}')">
+                                🐦 Share on Twitter
+                            </button>
+                            <button class="share-btn social-linkedin" onclick="achievementsPage.shareToSocial('linkedin', '${achievementId}')">
+                                💼 Share on LinkedIn
+                            </button>
+                            <button class="share-btn social-copy" onclick="achievementsPage.copyShareText('${achievementId}')">
+                                📋 Copy Share Text
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `,
+            actions: [
+                {
+                    text: 'Done',
+                    primary: true,
+                    action: () => modal.hide()
+                }
+            ]
+        });
+    }
+
+    /**
+     * Share to social media platforms
+     */
+    shareToSocial(platform, achievementId) {
+        const achievement = this.achievementsData.achievements.find(a => a.id === achievementId);
+        if (!achievement) return;
+
+        const shareText = `I just unlocked "${achievement.name}" on SkillForge! ${achievement.description} 🎉`;
+        const shareUrl = `${window.location.origin}/achievements?highlight=${achievementId}`;
+
+        let shareUrlPlatform;
+        switch (platform) {
+            case 'twitter':
+                shareUrlPlatform = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`;
+                break;
+            case 'linkedin':
+                shareUrlPlatform = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`;
+                break;
+            default:
+                return;
+        }
+
+        window.open(shareUrlPlatform, '_blank', 'width=600,height=400');
+    }
+
+    /**
+     * Copy share text to clipboard
+     */
+    copyShareText(achievementId) {
+        const achievement = this.achievementsData.achievements.find(a => a.id === achievementId);
+        if (!achievement) return;
+
+        const shareText = `I just unlocked "${achievement.name}" on SkillForge! ${achievement.description} 🎉\n\nJoin me at ${window.location.origin}`;
+
+        navigator.clipboard.writeText(shareText).then(() => {
+            notifications.show({
+                type: 'success',
+                message: 'Share text copied to clipboard!'
+            });
+        }).catch(() => {
+            notifications.show({
+                type: 'error',
+                message: 'Failed to copy share text'
+            });
+        });
+    }
+
+    /**
+     * Helper methods for animations and effects
+     */
+    static getRandomConfettiColor() {
+        const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#feca57', '#ff9ff3', '#54a0ff'];
+        return colors[Math.floor(Math.random() * colors.length)];
+    }
+
+    static playAchievementSound() {
+        // Check if user has sound enabled
+        const soundEnabled = localStorage.getItem('achievementSounds') !== 'false';
+        if (!soundEnabled) return;
+
+        // Create and play achievement sound
+        const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvnApAJUi7uH/Vgfl');
+        audio.volume = 0.3;
+        audio.play().catch(() => {
+            // Ignore errors if audio can't play
+        });
     }
 }
+
+// Global reference for onclick handlers
+window.achievementsPage = null;
 
 // Initialize achievements page when DOM is ready
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
-        window.achievements = new AchievementsPage();
+        window.achievementsPage = new AchievementsPage();
     });
 } else {
-    window.achievements = new AchievementsPage();
+    window.achievementsPage = new AchievementsPage();
 }
-
-export default AchievementsPage;

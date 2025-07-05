@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SkillForge Browser Integration Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            margin: 10px 0;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .test-result {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        button:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+        }
+        .input-group {
+            margin: 10px 0;
+        }
+        input {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin: 5px;
+        }
+        #results {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>SkillForge Browser Integration Test</h1>
+    
+    <div class="test-section">
+        <h2>API Client Test</h2>
+        <button onclick="testAPIClientLoad()">Test API Client Loading</button>
+        <button onclick="testServerConnection()">Test Server Connection</button>
+        <button onclick="runAllTests()">Run All Tests</button>
+        <button onclick="clearResults()">Clear Results</button>
+        <div id="results"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Authentication Test</h2>
+        <div class="input-group">
+            <input type="email" id="testEmail" placeholder="test@example.com" value="browsertest@example.com">
+            <input type="password" id="testPassword" placeholder="password" value="TestPassword123!">
+        </div>
+        <button onclick="testRegistration()">Test Registration</button>
+        <button onclick="testLogin()">Test Login</button>
+        <button onclick="testTokenVerification()">Test Token Verification</button>
+        <button onclick="testLogout()">Test Logout</button>
+    </div>
+
+    <div class="test-section">
+        <h2>Skills & Assessment Test</h2>
+        <button onclick="testSkillsAPI()">Test Skills API</button>
+        <button onclick="testAssessmentGeneration()">Test Assessment Generation</button>
+        <button onclick="testProgressAPI()">Test Progress API</button>
+        <button onclick="testAchievementsAPI()">Test Achievements API</button>
+    </div>
+
+    <div class="test-section">
+        <h2>Frontend Page Test</h2>
+        <button onclick="testPageNavigation()">Test Page Navigation</button>
+        <button onclick="testModuleLoading()">Test Module Loading</button>
+    </div>
+
+    <script type="module">
+        // Import API client
+        import APIClient from './js/api-client.js';
+        
+        window.apiClient = new APIClient();
+        window.testResults = [];
+
+        function addResult(type, message, data = null) {
+            const timestamp = new Date().toLocaleTimeString();
+            const result = { type, message, data, timestamp };
+            window.testResults.push(result);
+            
+            const resultsDiv = document.getElementById('results');
+            const resultDiv = document.createElement('div');
+            resultDiv.className = `test-result ${type}`;
+            resultDiv.innerHTML = `<strong>[${timestamp}]</strong> ${message}`;
+            
+            if (data) {
+                const dataDiv = document.createElement('div');
+                dataDiv.style.marginTop = '5px';
+                dataDiv.style.fontSize = '12px';
+                dataDiv.textContent = JSON.stringify(data, null, 2);
+                resultDiv.appendChild(dataDiv);
+            }
+            
+            resultsDiv.appendChild(resultDiv);
+            resultsDiv.scrollTop = resultsDiv.scrollHeight;
+        }
+
+        window.addResult = addResult;
+
+        // Test functions
+        window.testAPIClientLoad = function() {
+            try {
+                if (window.apiClient && typeof window.apiClient.request === 'function') {
+                    addResult('success', 'API Client loaded successfully');
+                    addResult('info', `API Client base URL: ${window.apiClient.baseURL}`);
+                } else {
+                    addResult('error', 'API Client not loaded properly');
+                }
+            } catch (error) {
+                addResult('error', 'Error testing API Client load', error.message);
+            }
+        };
+
+        window.testServerConnection = async function() {
+            try {
+                addResult('info', 'Testing server connection...');
+                const response = await window.apiClient.get('/health');
+                if (response && response.success) {
+                    addResult('success', 'Server connection successful', response);
+                } else {
+                    addResult('error', 'Server connection failed', response);
+                }
+            } catch (error) {
+                addResult('error', 'Server connection error', error.message);
+            }
+        };
+
+        window.testRegistration = async function() {
+            try {
+                const email = document.getElementById('testEmail').value;
+                const password = document.getElementById('testPassword').value;
+                
+                if (!email || !password) {
+                    addResult('error', 'Please provide email and password');
+                    return;
+                }
+
+                addResult('info', `Testing registration for ${email}...`);
+                const response = await window.apiClient.register(email, password);
+                
+                if (response && response.success) {
+                    addResult('success', 'Registration successful', response.data);
+                    addResult('info', `Token stored: ${window.apiClient.getToken() ? 'Yes' : 'No'}`);
+                } else {
+                    addResult('error', 'Registration failed', response);
+                }
+            } catch (error) {
+                addResult('error', 'Registration error', error.message);
+            }
+        };
+
+        window.testLogin = async function() {
+            try {
+                const email = document.getElementById('testEmail').value;
+                const password = document.getElementById('testPassword').value;
+                
+                addResult('info', `Testing login for ${email}...`);
+                const response = await window.apiClient.login(email, password);
+                
+                if (response && response.success) {
+                    addResult('success', 'Login successful', response.data);
+                    addResult('info', `Token stored: ${window.apiClient.getToken() ? 'Yes' : 'No'}`);
+                } else {
+                    addResult('error', 'Login failed', response);
+                }
+            } catch (error) {
+                addResult('error', 'Login error', error.message);
+            }
+        };
+
+        window.testTokenVerification = async function() {
+            try {
+                if (!window.apiClient.getToken()) {
+                    addResult('error', 'No token available for verification');
+                    return;
+                }
+
+                addResult('info', 'Testing token verification...');
+                const response = await window.apiClient.verifyToken();
+                
+                if (response && response.success) {
+                    addResult('success', 'Token verification successful', response.data);
+                } else {
+                    addResult('error', 'Token verification failed', response);
+                }
+            } catch (error) {
+                addResult('error', 'Token verification error', error.message);
+            }
+        };
+
+        window.testLogout = async function() {
+            try {
+                addResult('info', 'Testing logout...');
+                await window.apiClient.logout();
+                addResult('success', 'Logout successful');
+                addResult('info', `Token cleared: ${!window.apiClient.getToken() ? 'Yes' : 'No'}`);
+            } catch (error) {
+                addResult('error', 'Logout error', error.message);
+            }
+        };
+
+        window.testSkillsAPI = async function() {
+            try {
+                addResult('info', 'Testing skills API...');
+                const response = await window.apiClient.getSkillCategories();
+                
+                if (response && response.success) {
+                    addResult('success', 'Skills API working', response.data);
+                } else {
+                    addResult('error', 'Skills API failed', response);
+                }
+            } catch (error) {
+                addResult('error', 'Skills API error', error.message);
+            }
+        };
+
+        window.testAssessmentGeneration = async function() {
+            try {
+                if (!window.apiClient.getToken()) {
+                    addResult('error', 'Please login first for assessment test');
+                    return;
+                }
+
+                addResult('info', 'Testing assessment generation...');
+                const response = await window.apiClient.generateAssessment(1, 1, 3);
+                
+                if (response && response.success) {
+                    addResult('success', 'Assessment generation working', response.data);
+                } else {
+                    addResult('error', 'Assessment generation failed', response);
+                }
+            } catch (error) {
+                addResult('error', 'Assessment generation error', error.message);
+            }
+        };
+
+        window.testProgressAPI = async function() {
+            try {
+                if (!window.apiClient.getToken()) {
+                    addResult('error', 'Please login first for progress test');
+                    return;
+                }
+
+                addResult('info', 'Testing progress API...');
+                const response = await window.apiClient.getProgress(1, 1);
+                
+                if (response && response.success) {
+                    addResult('success', 'Progress API working', response.data);
+                } else {
+                    addResult('error', 'Progress API failed', response);
+                }
+            } catch (error) {
+                addResult('error', 'Progress API error', error.message);
+            }
+        };
+
+        window.testAchievementsAPI = async function() {
+            try {
+                if (!window.apiClient.getToken()) {
+                    addResult('error', 'Please login first for achievements test');
+                    return;
+                }
+
+                addResult('info', 'Testing achievements API...');
+                const response = await window.apiClient.getUserAchievements(1);
+                
+                if (response && response.success) {
+                    addResult('success', 'Achievements API working', response.data);
+                } else {
+                    addResult('error', 'Achievements API failed', response);
+                }
+            } catch (error) {
+                addResult('error', 'Achievements API error', error.message);
+            }
+        };
+
+        window.testPageNavigation = function() {
+            addResult('info', 'Testing page navigation...');
+            
+            const pages = ['index.html', 'dashboard.html', 'assessment.html', 'achievements.html', 'progress.html'];
+            let working = 0;
+            
+            pages.forEach(page => {
+                fetch(page)
+                    .then(response => {
+                        if (response.ok) {
+                            working++;
+                            addResult('success', `Page ${page} accessible`);
+                        } else {
+                            addResult('error', `Page ${page} returned ${response.status}`);
+                        }
+                        
+                        if (working === pages.length) {
+                            addResult('success', 'All pages accessible');
+                        }
+                    })
+                    .catch(error => {
+                        addResult('error', `Page ${page} error`, error.message);
+                    });
+            });
+        };
+
+        window.testModuleLoading = async function() {
+            addResult('info', 'Testing module loading...');
+            
+            const modules = [
+                './js/router.js',
+                './js/state-manager.js',
+                './js/main.js'
+            ];
+            
+            for (const module of modules) {
+                try {
+                    await import(module);
+                    addResult('success', `Module ${module} loaded successfully`);
+                } catch (error) {
+                    addResult('error', `Module ${module} failed to load`, error.message);
+                }
+            }
+        };
+
+        window.runAllTests = async function() {
+            addResult('info', '=== Starting comprehensive integration test ===');
+            
+            // Test 1: API Client
+            await window.testAPIClientLoad();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            // Test 2: Server connection
+            await window.testServerConnection();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            // Test 3: Registration
+            document.getElementById('testEmail').value = `browsertest${Date.now()}@example.com`;
+            await window.testRegistration();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            // Test 4: Token verification
+            await window.testTokenVerification();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            // Test 5: Skills API
+            await window.testSkillsAPI();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            // Test 6: Assessment
+            await window.testAssessmentGeneration();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            // Test 7: Progress
+            await window.testProgressAPI();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            // Test 8: Achievements
+            await window.testAchievementsAPI();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            // Test 9: Logout
+            await window.testLogout();
+            
+            addResult('info', '=== Integration test completed ===');
+        };
+
+        window.clearResults = function() {
+            document.getElementById('results').innerHTML = '';
+            window.testResults = [];
+        };
+
+        // Set up API client event listeners
+        window.apiClient.on('userRegistered', (user) => {
+            addResult('info', 'Event: User registered', user);
+        });
+
+        window.apiClient.on('userLoggedIn', (user) => {
+            addResult('info', 'Event: User logged in', user);
+        });
+
+        window.apiClient.on('userLoggedOut', () => {
+            addResult('info', 'Event: User logged out');
+        });
+
+        window.apiClient.on('unauthorized', () => {
+            addResult('error', 'Event: Unauthorized - token expired');
+        });
+
+        // Auto-run basic tests on load
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                window.testAPIClientLoad();
+                window.testServerConnection();
+            }, 500);
+        });
+    </script>
+</body>
+</html>

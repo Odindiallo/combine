@@ -483,145 +483,437 @@
     margin-top: 1rem;
 }
 
-/* Navigation Components */
-.navbar {
+/* Enhanced Interactive Animations and Effects */
+
+/* Achievement unlock animations */
+.achievement-unlock-overlay {
     position: fixed;
     top: 0;
     left: 0;
-    right: 0;
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(10px);
-    border-bottom: 1px solid var(--border-color);
-    z-index: 100;
-    height: 70px;
-}
-
-.nav-container {
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.9);
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    height: 100%;
-    padding: 0 1rem;
-    max-width: 1200px;
-    margin: 0 auto;
+    justify-content: center;
+    z-index: 10000;
+    animation: overlayFadeIn 0.5s ease;
 }
 
-.nav-brand h1 {
-    color: var(--primary-color);
-    font-size: 1.5rem;
-    font-weight: 700;
-}
-
-.nav-links {
-    display: flex;
-    align-items: center;
-    gap: 2rem;
-}
-
-.nav-link {
-    color: var(--text-secondary);
-    text-decoration: none;
-    font-weight: 500;
-    transition: color 0.3s ease;
+.achievement-unlock-modal {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 20px;
+    padding: 3rem;
+    text-align: center;
     position: relative;
+    max-width: 500px;
+    animation: modalSlideIn 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
-.nav-link:hover,
-.nav-link.active {
-    color: var(--primary-color);
+.unlock-animation {
+    position: relative;
+    margin-bottom: 2rem;
 }
 
-.nav-link.active::after {
+.achievement-burst {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.burst-ray {
+    position: absolute;
+    width: 4px;
+    height: 60px;
+    background: linear-gradient(to top, transparent, #ffd700, transparent);
+    transform-origin: bottom center;
+    animation: burstRay 2s ease-in-out infinite;
+}
+
+.burst-ray:nth-child(1) { transform: rotate(0deg); animation-delay: 0s; }
+.burst-ray:nth-child(2) { transform: rotate(45deg); animation-delay: 0.1s; }
+.burst-ray:nth-child(3) { transform: rotate(90deg); animation-delay: 0.2s; }
+.burst-ray:nth-child(4) { transform: rotate(135deg); animation-delay: 0.3s; }
+.burst-ray:nth-child(5) { transform: rotate(180deg); animation-delay: 0.4s; }
+.burst-ray:nth-child(6) { transform: rotate(225deg); animation-delay: 0.5s; }
+.burst-ray:nth-child(7) { transform: rotate(270deg); animation-delay: 0.6s; }
+.burst-ray:nth-child(8) { transform: rotate(315deg); animation-delay: 0.7s; }
+
+.achievement-badge-unlock {
+    position: relative;
+    width: 120px;
+    height: 120px;
+    margin: 0 auto;
+    background: linear-gradient(45deg, #ffd700, #ffed4e);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: badgePulse 2s ease-in-out infinite;
+    box-shadow: 0 0 40px rgba(255, 215, 0, 0.6);
+}
+
+.badge-glow {
+    position: absolute;
+    top: -10px;
+    left: -10px;
+    right: -10px;
+    bottom: -10px;
+    background: radial-gradient(circle, rgba(255, 215, 0, 0.3), transparent);
+    border-radius: 50%;
+    animation: glowPulse 2s ease-in-out infinite;
+}
+
+.badge-icon-unlock {
+    font-size: 3rem;
+    z-index: 1;
+    animation: iconBounce 1s ease-in-out infinite alternate;
+}
+
+/* Confetti particles */
+.confetti-particle {
+    position: fixed;
+    top: -10px;
+    width: 10px;
+    height: 10px;
+    background: #ff6b6b;
+    animation: confettiFall linear;
+    z-index: 9999;
+}
+
+.sparkle-particle {
+    position: fixed;
+    font-size: 1.5rem;
+    animation: sparkleFloat 3s ease-in-out;
+    z-index: 9999;
+    pointer-events: none;
+}
+
+/* Progress animations with micro-interactions */
+.skill-card {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.skill-card:hover {
+    transform: translateY(-8px) scale(1.02);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+}
+
+.skill-card.near-completion {
+    border: 2px solid #ffd700;
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+    animation: nearCompletionGlow 2s ease-in-out infinite;
+}
+
+.progress-ring-circle {
+    stroke: var(--primary-color);
+    stroke-dasharray: 157;
+    stroke-dashoffset: 157;
+    transition: stroke-dashoffset 1s cubic-bezier(0.4, 0, 0.2, 1);
+    transform-origin: center;
+    transform: rotate(-90deg);
+}
+
+/* Interactive filter animations */
+.filter-btn {
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.filter-btn::before {
     content: '';
     position: absolute;
-    bottom: -20px;
-    left: 0;
-    right: 0;
-    height: 2px;
-    background: var(--primary-color);
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s ease;
 }
 
-.mobile-menu-toggle {
-    display: none;
-    flex-direction: column;
+.filter-btn:hover::before {
+    left: 100%;
+}
+
+.filter-btn.active {
+    transform: scale(1.05);
+    box-shadow: 0 5px 15px rgba(0, 123, 255, 0.3);
+}
+
+/* Assessment question navigation dots */
+.question-dots {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: center;
+    margin: 1rem 0;
+}
+
+.question-dot {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 2px solid #e9ecef;
+    background: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     cursor: pointer;
-    gap: 4px;
+    transition: all 0.3s ease;
+    font-weight: 600;
+    font-size: 0.9rem;
 }
 
-.mobile-menu-toggle span {
-    width: 24px;
-    height: 2px;
-    background: var(--text-primary);
+.question-dot:hover {
+    transform: scale(1.1);
+    border-color: var(--primary-color);
+}
+
+.question-dot.active {
+    background: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+    transform: scale(1.2);
+}
+
+.question-dot.answered {
+    background: var(--success-color);
+    color: white;
+    border-color: var(--success-color);
+}
+
+/* Timer visual indicators */
+.timer-normal { color: var(--success-color); }
+.timer-warning { 
+    color: var(--warning-color);
+    animation: timerPulse 1s ease-in-out infinite;
+}
+.timer-danger { 
+    color: var(--danger-color);
+    animation: timerUrgent 0.5s ease-in-out infinite;
+}
+
+/* Achievement comparison charts */
+.comparison-chart-container {
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+    margin-top: 1rem;
+}
+
+.comparison-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.skill-stat {
+    background: white;
+    padding: 1rem;
+    border-radius: 8px;
+    text-align: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Learning path cards */
+.learning-path-card {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+}
+
+.learning-path-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    border-color: var(--primary-color);
+}
+
+.path-progress {
+    margin: 1rem 0;
+}
+
+.path-stats {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+    color: #666;
+}
+
+/* Streak calendar */
+.streak-calendar {
+    display: grid;
+    grid-template-columns: repeat(10, 1fr);
+    gap: 4px;
+    margin-top: 1rem;
+}
+
+.streak-day {
+    width: 20px;
+    height: 20px;
+    border-radius: 3px;
+    background: #e9ecef;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.streak-day.active {
+    background: var(--success-color);
+    transform: scale(1.1);
+}
+
+.streak-day:hover {
+    transform: scale(1.2);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Export options styling */
+.export-formats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem;
+    margin: 1rem 0;
+}
+
+.format-card {
+    padding: 1rem;
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    text-align: center;
+    cursor: pointer;
     transition: all 0.3s ease;
 }
 
+.export-option input[type="radio"]:checked + .format-card {
+    border-color: var(--primary-color);
+    background: rgba(0, 123, 255, 0.1);
+}
+
+.format-card:hover {
+    border-color: var(--primary-color);
+    transform: translateY(-2px);
+}
+
+/* Keyframe animations */
+@keyframes overlayFadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes modalSlideIn {
+    from { 
+        opacity: 0;
+        transform: translateY(-50px) scale(0.8);
+    }
+    to { 
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@keyframes burstRay {
+    0%, 100% { transform: scaleY(0.5); opacity: 0; }
+    50% { transform: scaleY(1); opacity: 1; }
+}
+
+@keyframes badgePulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+}
+
+@keyframes glowPulse {
+    0%, 100% { opacity: 0.3; }
+    50% { opacity: 0.8; }
+}
+
+@keyframes iconBounce {
+    from { transform: translateY(0); }
+    to { transform: translateY(-10px); }
+}
+
+@keyframes confettiFall {
+    to {
+        transform: translateY(100vh) rotate(360deg);
+    }
+}
+
+@keyframes sparkleFloat {
+    0% { 
+        opacity: 0;
+        transform: translateY(0) scale(0);
+    }
+    50% { 
+        opacity: 1;
+        transform: translateY(-50px) scale(1);
+    }
+    100% { 
+        opacity: 0;
+        transform: translateY(-100px) scale(0);
+    }
+}
+
+@keyframes nearCompletionGlow {
+    0%, 100% { box-shadow: 0 0 20px rgba(255, 215, 0, 0.3); }
+    50% { box-shadow: 0 0 30px rgba(255, 215, 0, 0.6); }
+}
+
+@keyframes timerPulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
+@keyframes timerUrgent {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.8; transform: scale(1.05); }
+}
+
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* Responsive adjustments */
 @media (max-width: 768px) {
-    .nav-links {
-        display: none;
-    }
-    
-    .mobile-menu-toggle {
-        display: flex;
-    }
-}
-
-/* User menu dropdown */
-.user-menu {
-    position: relative;
-}
-
-.user-dropdown {
-    position: absolute;
-    top: 100%;
-    right: 0;
-    min-width: 200px;
-    background: var(--color-white);
-    border: 1px solid var(--color-border);
-    border-radius: var(--border-radius);
-    box-shadow: var(--shadow-lg);
-    z-index: 1000;
-    padding: 0.5rem 0;
-    margin-top: 0.25rem;
-}
-
-.user-dropdown.hidden {
-    display: none;
-}
-
-.dropdown-item {
-    display: block;
-    width: 100%;
-    padding: 0.75rem 1rem;
-    color: var(--color-text-primary);
-    text-decoration: none;
-    border: none;
-    background: none;
-    text-align: left;
-    cursor: pointer;
-    transition: background-color 0.2s ease;
-}
-
-.dropdown-item:hover {
-    background: var(--color-gray-50);
-}
-
-/* Responsive Design for Components */
-@media (max-width: 768px) {
-    .toast-container {
-        left: 1rem;
-        right: 1rem;
-        max-width: none;
-    }
-    
-    .modal-content {
+    .achievement-unlock-modal {
         margin: 1rem;
-        width: calc(100% - 2rem);
+        padding: 2rem;
     }
     
-    .modal-header,
-    .modal-body,
-    .modal-footer {
-        padding-left: 1rem;
-        padding-right: 1rem;
+    .achievement-badge-unlock {
+        width: 80px;
+        height: 80px;
+    }
+    
+    .badge-icon-unlock {
+        font-size: 2rem;
+    }
+    
+    .question-dots {
+        flex-wrap: wrap;
+    }
+    
+    .comparison-stats {
+        grid-template-columns: 1fr;
+    }
+    
+    .export-formats {
+        grid-template-columns: 1fr;
     }
 }

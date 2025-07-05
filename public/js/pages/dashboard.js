@@ -96,11 +96,17 @@ class DashboardPage {
             this.loadingManager.show('Loading dashboard...');
 
             // Load data in parallel
-            const [userStats, recentAssessments, achievements] = await Promise.all([
+            const [userStats, recentAssessments, achievements, skillCategories] = await Promise.all([
                 this.loadUserStats(),
                 this.loadRecentAssessments(),
-                this.loadRecentAchievements()
+                this.loadRecentAchievements(),
+                this.loadSkillCategories()
             ]);
+
+            // Update UI with loaded data
+            this.updateStatsDisplay(userStats);
+            this.updateCategoriesDisplay(skillCategories);
+            this.updateActivityFeed(recentAssessments, achievements);
 
             // Update UI with loaded data
             this.updateUserStats(userStats);
@@ -174,172 +180,269 @@ class DashboardPage {
     }
 
     /**
-     * Update user statistics display
+     * Load skill categories with progress
      */
-    updateUserStats(stats) {
-        const elements = {
-            totalAssessments: document.getElementById('totalAssessments'),
-            completedAssessments: document.getElementById('completedAssessments'),
-            averageScore: document.getElementById('averageScore'),
-            skillsLearned: document.getElementById('skillsLearned'),
-            currentStreak: document.getElementById('currentStreak')
+    async loadSkillCategories() {
+        try {
+            const response = await apiClient.skills.getAll();
+            if (response.success) {
+                return this.groupSkillsByCategory(response.data);
+            }
+            return [];
+        } catch (error) {
+            console.error('Failed to load skill categories:', error);
+            return [];
+        }
+    }
+
+    /**
+     * Group skills by category for display
+     */
+    groupSkillsByCategory(skills) {
+        const categories = {};
+        
+        skills.forEach(skill => {
+            const category = skill.category || 'General';
+            if (!categories[category]) {
+                categories[category] = {
+                    name: category,
+                    skills: [],
+                    totalSkills: 0,
+                    completedSkills: 0,
+                    progress: 0
+                };
+            }
+            
+            categories[category].skills.push(skill);
+            categories[category].totalSkills++;
+            
+            if (skill.masteryLevel >= 80) {
+                categories[category].completedSkills++;
+            }
+        });
+
+        // Calculate progress for each category
+        Object.values(categories).forEach(category => {
+            category.progress = category.totalSkills > 0 
+                ? Math.round((category.completedSkills / category.totalSkills) * 100)
+                : 0;
+        });
+
+        return Object.values(categories);
+    }
+
+    /**
+     * Update stats display with real data
+     */
+    updateStatsDisplay(userStats) {
+        const stats = userStats || {
+            totalSkills: 0,
+            currentStreak: 0,
+            totalAchievements: 0,
+            totalXP: 0
         };
 
-        if (elements.totalAssessments) {
-            elements.totalAssessments.textContent = stats.totalAssessments || '0';
-        }
+        // Update stat cards
+        this.updateElement('totalSkills', stats.totalSkills);
+        this.updateElement('currentStreak', stats.currentStreak);
+        this.updateElement('totalAchievements', stats.totalAchievements);
+        this.updateElement('totalXP', stats.totalXP.toLocaleString());
 
-        if (elements.completedAssessments) {
-            elements.completedAssessments.textContent = stats.completedAssessments || '0';
-        }
-
-        if (elements.averageScore) {
-            elements.averageScore.textContent = `${Math.round(stats.averageScore || 0)}%`;
-        }
-
-        if (elements.skillsLearned) {
-            elements.skillsLearned.textContent = stats.skillsLearned || '0';
-        }
-
-        if (elements.currentStreak) {
-            elements.currentStreak.textContent = `${stats.streak || 0} days`;
-        }
-
-        // Update progress rings
-        this.updateProgressRings(stats);
+        // Add animations to stat cards
+        this.animateStatCards();
     }
 
     /**
-     * Update progress ring displays
+     * Update categories display
      */
-    updateProgressRings(stats) {
-        const completionRate = stats.totalAssessments > 0 
-            ? (stats.completedAssessments / stats.totalAssessments) * 100 
-            : 0;
+    updateCategoriesDisplay(categories) {
+        const categoriesGrid = document.getElementById('categoriesGrid');
+        if (!categoriesGrid) return;
 
-        this.updateProgressRing('completionRing', completionRate);
-        this.updateProgressRing('scoreRing', stats.averageScore || 0);
-    }
-
-    /**
-     * Update individual progress ring
-     */
-    updateProgressRing(ringId, percentage) {
-        const ring = document.getElementById(ringId);
-        if (!ring) return;
-
-        const circle = ring.querySelector('.progress-circle');
-        if (!circle) return;
-
-        const radius = circle.r.baseVal.value;
-        const circumference = 2 * Math.PI * radius;
-        const strokeDasharray = circumference;
-        const strokeDashoffset = circumference - (percentage / 100) * circumference;
-
-        circle.style.strokeDasharray = strokeDasharray;
-        circle.style.strokeDashoffset = strokeDashoffset;
-
-        // Update percentage text
-        const percentText = ring.querySelector('.progress-text');
-        if (percentText) {
-            percentText.textContent = `${Math.round(percentage)}%`;
-        }
-    }
-
-    /**
-     * Update recent assessments display
-     */
-    updateRecentAssessments(assessments) {
-        const container = document.getElementById('recentAssessments');
-        if (!container) return;
-
-        if (assessments.length === 0) {
-            container.innerHTML = `
+        if (!categories || categories.length === 0) {
+            categoriesGrid.innerHTML = `
                 <div class="empty-state">
-                    <p>No assessments yet</p>
-                    <button class="btn btn-primary btn-sm" onclick="window.location.href='/assessment.html'">
-                        Start Your First Assessment
+                    <div class="empty-icon">📚</div>
+                    <h3>No Skills Yet</h3>
+                    <p>Start your learning journey by adding your first skill!</p>
+                    <button class="btn btn-primary" onclick="window.location.href='/assessment.html'">
+                        Take Assessment
                     </button>
                 </div>
             `;
             return;
         }
 
-        container.innerHTML = assessments.map(assessment => `
-            <div class="assessment-item" data-assessment-id="${assessment.id}">
-                <div class="assessment-info">
-                    <h4>${assessment.title}</h4>
-                    <p class="assessment-meta">
-                        <span class="skill-tag">${assessment.skill}</span>
-                        <span class="date">${this.formatDate(assessment.completedAt)}</span>
-                    </p>
+        // Generate category cards
+        categoriesGrid.innerHTML = categories.map(category => `
+            <div class="category-card" data-category="${category.name}">
+                <div class="category-header">
+                    <div class="category-icon">${this.getCategoryIcon(category.name)}</div>
+                    <div class="category-info">
+                        <h3>${category.name}</h3>
+                        <p>${category.totalSkills} skill${category.totalSkills !== 1 ? 's' : ''}</p>
+                    </div>
                 </div>
-                <div class="assessment-score ${this.getScoreClass(assessment.score)}">
-                    ${assessment.score}%
+                <div class="category-progress">
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: ${category.progress}%"></div>
+                    </div>
+                    <span class="progress-text">${category.progress}% Complete</span>
+                </div>
+                <div class="category-actions">
+                    <button class="btn btn-outline btn-sm" onclick="dashboard.viewCategoryDetails('${category.name}')">
+                        View Details
+                    </button>
                 </div>
             </div>
         `).join('');
 
-        // Add click listeners to assessment items
-        container.querySelectorAll('.assessment-item').forEach(item => {
-            item.addEventListener('click', () => {
-                const assessmentId = item.dataset.assessmentId;
-                this.viewAssessmentDetails(assessmentId);
-            });
-        });
+        // Add click handlers to category cards
+        this.setupCategoryInteractions();
     }
 
     /**
-     * Update achievements display
+     * Update activity feed with recent data
      */
-    updateAchievements(achievements) {
-        const container = document.getElementById('recentAchievements');
-        if (!container) return;
+    updateActivityFeed(assessments, achievements) {
+        const activityFeed = document.getElementById('activityFeed');
+        if (!activityFeed) return;
 
-        if (achievements.length === 0) {
-            container.innerHTML = `
-                <div class="empty-state">
-                    <p>Complete assessments to earn achievements!</p>
+        const activities = [];
+
+        // Add recent assessments
+        (assessments || []).slice(0, 3).forEach(assessment => {
+            activities.push({
+                type: 'assessment',
+                icon: '📝',
+                title: `Completed assessment: ${assessment.skillName || 'Unknown Skill'}`,
+                description: `Score: ${assessment.score}% • ${this.formatTimeAgo(assessment.completedAt)}`,
+                timestamp: new Date(assessment.completedAt)
+            });
+        });
+
+        // Add recent achievements
+        (achievements || []).slice(0, 2).forEach(achievement => {
+            activities.push({
+                type: 'achievement',
+                icon: '🏆',
+                title: `Earned achievement: ${achievement.name}`,
+                description: achievement.description,
+                timestamp: new Date(achievement.earnedAt)
+            });
+        });
+
+        // Sort by timestamp
+        activities.sort((a, b) => b.timestamp - a.timestamp);
+
+        if (activities.length === 0) {
+            activityFeed.innerHTML = `
+                <div class="empty-activity">
+                    <div class="empty-icon">📈</div>
+                    <p>No recent activity. Start learning to see your progress here!</p>
                 </div>
             `;
             return;
         }
 
-        container.innerHTML = achievements.map(achievement => `
-            <div class="achievement-card">
-                <div class="achievement-icon">${achievement.icon || '🏆'}</div>
-                <div class="achievement-info">
-                    <h4>${achievement.title}</h4>
-                    <p>${achievement.description}</p>
-                    <small>${this.formatDate(achievement.earnedAt)}</small>
+        activityFeed.innerHTML = activities.slice(0, 5).map(activity => `
+            <div class="activity-item">
+                <div class="activity-icon">${activity.icon}</div>
+                <div class="activity-content">
+                    <h4>${activity.title}</h4>
+                    <p>${activity.description}</p>
                 </div>
             </div>
         `).join('');
     }
 
     /**
-     * Get CSS class for score
+     * Get category icon based on name
      */
-    getScoreClass(score) {
-        if (score >= 90) return 'score-excellent';
-        if (score >= 80) return 'score-good';
-        if (score >= 70) return 'score-average';
-        return 'score-needs-improvement';
+    getCategoryIcon(categoryName) {
+        const icons = {
+            'Programming': '💻',
+            'Design': '🎨',
+            'Marketing': '📊',
+            'Communication': '💬',
+            'Leadership': '👥',
+            'Technical': '⚙️',
+            'Creative': '🎭',
+            'Business': '💼',
+            'General': '📚'
+        };
+        return icons[categoryName] || '📚';
     }
 
     /**
-     * Format date for display
+     * Setup category card interactions
      */
-    formatDate(dateString) {
-        const date = new Date(dateString);
-        const now = new Date();
-        const diffInHours = Math.floor((now - date) / (1000 * 60 * 60));
+    setupCategoryInteractions() {
+        const categoryCards = document.querySelectorAll('.category-card');
+        categoryCards.forEach(card => {
+            card.addEventListener('click', (e) => {
+                if (!e.target.closest('button')) {
+                    const categoryName = card.dataset.category;
+                    this.viewCategoryDetails(categoryName);
+                }
+            });
 
-        if (diffInHours < 1) return 'Just now';
-        if (diffInHours < 24) return `${diffInHours}h ago`;
-        if (diffInHours < 48) return 'Yesterday';
-        
-        return date.toLocaleDateString();
+            // Add hover effects
+            card.addEventListener('mouseenter', () => {
+                card.style.transform = 'translateY(-2px)';
+                card.style.transition = 'transform 0.2s ease';
+            });
+
+            card.addEventListener('mouseleave', () => {
+                card.style.transform = 'translateY(0)';
+            });
+        });
+    }
+
+    /**
+     * View category details
+     */
+    viewCategoryDetails(categoryName) {
+        // Store category in state and navigate to skills page
+        stateManager.setState('selectedCategory', categoryName);
+        window.location.href = '/progress.html';
+    }
+
+    /**
+     * Animate stat cards on load
+     */
+    animateStatCards() {
+        const statCards = document.querySelectorAll('.stat-card');
+        statCards.forEach((card, index) => {
+            setTimeout(() => {
+                card.style.animation = 'slideInUp 0.5s ease forwards';
+                card.style.opacity = '1';
+            }, index * 100);
+        });
+    }
+
+    /**
+     * Format time ago for activity feed
+     */
+    formatTimeAgo(timestamp) {
+        const now = new Date();
+        const time = new Date(timestamp);
+        const diffInSeconds = Math.floor((now - time) / 1000);
+
+        if (diffInSeconds < 60) return 'Just now';
+        if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)} minutes ago`;
+        if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)} hours ago`;
+        return `${Math.floor(diffInSeconds / 86400)} days ago`;
+    }
+
+    /**
+     * Helper to safely update element content
+     */
+    updateElement(id, content) {
+        const element = document.getElementById(id);
+        if (element) {
+            element.textContent = content;
+        }
     }
 
     /**

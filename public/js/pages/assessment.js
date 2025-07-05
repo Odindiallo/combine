@@ -45,6 +45,7 @@ class AssessmentPage {
         this.setupModals();
         await this.loadInitialData();
         this.handleUrlParams();
+        this.setupAssessmentSelection();
     }
 
     /**
@@ -307,6 +308,7 @@ class AssessmentPage {
         this.updateQuestionDisplay(question);
         this.updateNavigationButtons();
         this.updateAssessmentHeader();
+        this.updateQuestionNavigation();
     }
 
     /**
@@ -357,56 +359,346 @@ class AssessmentPage {
     }
 
     /**
-     * Save answer for current question
+     * Enhanced assessment selection with real-time filtering and search
      */
-    saveAnswer(answerId) {
+    setupAssessmentSelection() {
+        const searchInput = document.getElementById('assessmentSearch');
+        const categoryFilter = document.getElementById('categoryFilter');
+        const difficultyFilter = document.getElementById('difficultyFilter');
+
+        // Search functionality
+        if (searchInput) {
+            searchInput.addEventListener('input', (e) => {
+                this.filterAssessments(e.target.value);
+            });
+        }
+
+        // Category filtering
+        if (categoryFilter) {
+            categoryFilter.addEventListener('change', (e) => {
+                this.filterByCategory(e.target.value);
+            });
+        }
+
+        // Difficulty filtering
+        if (difficultyFilter) {
+            difficultyFilter.addEventListener('change', (e) => {
+                this.filterByDifficulty(e.target.value);
+            });
+        }
+    }
+
+    /**
+     * Filter assessments by search term
+     */
+    filterAssessments(searchTerm) {
+        const assessmentCards = document.querySelectorAll('.assessment-card');
+        const term = searchTerm.toLowerCase();
+
+        assessmentCards.forEach(card => {
+            const title = card.querySelector('h3')?.textContent.toLowerCase() || '';
+            const description = card.querySelector('.assessment-description')?.textContent.toLowerCase() || '';
+            
+            if (title.includes(term) || description.includes(term)) {
+                card.style.display = 'block';
+                card.style.animation = 'fadeIn 0.3s ease';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+
+        this.updateResultsCount();
+    }
+
+    /**
+     * Enhanced question navigation with progress visualization
+     */
+    updateQuestionNavigation() {
         if (!this.currentAssessment) return;
 
-        const question = this.currentAssessment.questions[this.currentQuestionIndex];
-        if (question) {
-            this.answers.set(question.id, answerId);
+        const { questions } = this.currentAssessment;
+        const currentIndex = this.currentQuestionIndex;
+        
+        // Update progress bar
+        const progressBar = document.querySelector('.question-progress-fill');
+        if (progressBar) {
+            const progress = ((currentIndex + 1) / questions.length) * 100;
+            progressBar.style.width = `${progress}%`;
+        }
+
+        // Update question counter
+        const questionCounter = document.getElementById('questionCounter');
+        if (questionCounter) {
+            questionCounter.textContent = `Question ${currentIndex + 1} of ${questions.length}`;
+        }
+
+        // Update navigation buttons
+        const prevBtn = document.getElementById('prevQuestionBtn');
+        const nextBtn = document.getElementById('nextQuestionBtn');
+        const submitBtn = document.getElementById('submitAssessmentBtn');
+
+        if (prevBtn) {
+            prevBtn.disabled = currentIndex === 0;
+            prevBtn.style.opacity = currentIndex === 0 ? '0.5' : '1';
+        }
+
+        if (nextBtn && submitBtn) {
+            const isLastQuestion = currentIndex === questions.length - 1;
+            nextBtn.style.display = isLastQuestion ? 'none' : 'block';
+            submitBtn.style.display = isLastQuestion ? 'block' : 'none';
+        }
+
+        // Update question navigation dots
+        this.updateQuestionDots();
+    }
+
+    /**
+     * Create interactive question navigation dots
+     */
+    updateQuestionDots() {
+        if (!this.currentAssessment) return;
+
+        const dotsContainer = document.getElementById('questionDots');
+        if (!dotsContainer) return;
+
+        const { questions } = this.currentAssessment;
+        
+        dotsContainer.innerHTML = questions.map((_, index) => {
+            const isActive = index === this.currentQuestionIndex;
+            const isAnswered = this.answers.has(index);
             
-            // Auto-save to prevent data loss
-            this.autoSaveProgress();
+            return `
+                <button 
+                    class="question-dot ${isActive ? 'active' : ''} ${isAnswered ? 'answered' : ''}"
+                    onclick="assessmentPage.goToQuestion(${index})"
+                    title="Question ${index + 1}"
+                >
+                    ${index + 1}
+                </button>
+            `;
+        }).join('');
+    }
+
+    /**
+     * Go to specific question
+     */
+    goToQuestion(questionIndex) {
+        if (!this.currentAssessment || questionIndex < 0 || questionIndex >= this.currentAssessment.questions.length) {
+            return;
+        }
+
+        this.currentQuestionIndex = questionIndex;
+        this.displayCurrentQuestion();
+        this.updateQuestionNavigation();
+    }
+
+    /**
+     * Enhanced answer selection with immediate feedback
+     */
+    setupAnswerHandlers() {
+        document.addEventListener('change', (e) => {
+            if (e.target.matches('input[name="answer"]')) {
+                this.handleAnswerSelection(e.target);
+            }
+        });
+
+        document.addEventListener('click', (e) => {
+            if (e.target.matches('.answer-option') || e.target.closest('.answer-option')) {
+                const option = e.target.closest('.answer-option');
+                const input = option.querySelector('input[type="radio"], input[type="checkbox"]');
+                if (input) {
+                    input.checked = !input.checked;
+                    this.handleAnswerSelection(input);
+                }
+            }
+        });
+    }
+
+    /**
+     * Handle answer selection with visual feedback
+     */
+    handleAnswerSelection(input) {
+        const questionIndex = this.currentQuestionIndex;
+        const value = input.value;
+        
+        // Save answer
+        if (input.type === 'radio') {
+            this.answers.set(questionIndex, value);
+        } else if (input.type === 'checkbox') {
+            const currentAnswers = this.answers.get(questionIndex) || [];
+            if (input.checked) {
+                currentAnswers.push(value);
+            } else {
+                const index = currentAnswers.indexOf(value);
+                if (index > -1) currentAnswers.splice(index, 1);
+            }
+            this.answers.set(questionIndex, currentAnswers);
+        }
+
+        // Visual feedback
+        const option = input.closest('.answer-option');
+        if (option) {
+            option.classList.add('selected');
+            
+            // Remove selected class from other options for radio buttons
+            if (input.type === 'radio') {
+                const allOptions = document.querySelectorAll('.answer-option');
+                allOptions.forEach(opt => {
+                    if (opt !== option) {
+                        opt.classList.remove('selected');
+                    }
+                });
+            }
+        }
+
+        // Update progress
+        this.updateQuestionDots();
+        this.updateAnswerProgress();
+        
+        // Save to localStorage for persistence
+        this.saveProgressLocally();
+    }
+
+    /**
+     * Setup timer functionality with visual countdown
+     */
+    setupTimer(duration) {
+        this.timeRemaining = duration;
+        this.updateTimerDisplay();
+
+        this.timer = setInterval(() => {
+            this.timeRemaining--;
+            this.updateTimerDisplay();
+
+            // Warning when time is running low
+            if (this.timeRemaining <= 300) { // 5 minutes
+                this.showTimeWarning();
+            }
+
+            if (this.timeRemaining <= 0) {
+                this.handleTimeExpired();
+            }
+        }, 1000);
+    }
+
+    /**
+     * Update timer display with visual indicators
+     */
+    updateTimerDisplay() {
+        const timerElement = document.getElementById('assessmentTimer');
+        if (!timerElement) return;
+
+        const minutes = Math.floor(this.timeRemaining / 60);
+        const seconds = this.timeRemaining % 60;
+        const timeString = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+
+        timerElement.textContent = timeString;
+
+        // Color coding based on remaining time
+        const percentage = this.timeRemaining / (this.currentAssessment?.duration || 1800);
+        if (percentage > 0.5) {
+            timerElement.className = 'timer-normal';
+        } else if (percentage > 0.25) {
+            timerElement.className = 'timer-warning';
+        } else {
+            timerElement.className = 'timer-danger';
         }
     }
 
     /**
-     * Auto-save assessment progress
+     * Show time warning notification
      */
-    async autoSaveProgress() {
+    showTimeWarning() {
+        if (this.timeRemaining === 300) { // Show once at 5 minutes
+            notifications.show({
+                type: 'warning',
+                title: 'Time Warning',
+                message: '5 minutes remaining! Please review your answers.',
+                duration: 10000
+            });
+        }
+    }
+
+    /**
+     * Handle time expiration
+     */
+    handleTimeExpired() {
+        clearInterval(this.timer);
+        notifications.show({
+            type: 'error',
+            title: 'Time Expired',
+            message: 'Assessment time has ended. Submitting your answers.',
+            duration: 5000
+        });
+        
+        setTimeout(() => {
+            this.submitAssessment(true); // Auto-submit
+        }, 2000);
+    }
+
+    /**
+     * Update answer progress indicator
+     */
+    updateAnswerProgress() {
+        const progressElement = document.getElementById('answerProgress');
+        if (!progressElement || !this.currentAssessment) return;
+
+        const totalQuestions = this.currentAssessment.questions.length;
+        const answeredQuestions = this.answers.size;
+        const percentage = (answeredQuestions / totalQuestions) * 100;
+
+        progressElement.innerHTML = `
+            <div class="progress-text">
+                ${answeredQuestions} of ${totalQuestions} questions answered
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" style="width: ${percentage}%"></div>
+            </div>
+        `;
+    }
+
+    /**
+     * Save progress locally for persistence
+     */
+    saveProgressLocally() {
+        if (!this.currentAssessment) return;
+
+        const progressData = {
+            assessmentId: this.currentAssessment.id,
+            currentQuestionIndex: this.currentQuestionIndex,
+            answers: Array.from(this.answers.entries()),
+            timeRemaining: this.timeRemaining,
+            timestamp: Date.now()
+        };
+
+        localStorage.setItem('assessment_progress', JSON.stringify(progressData));
+    }
+
+    /**
+     * Restore progress from local storage
+     */
+    restoreProgressFromLocal() {
+        const saved = localStorage.getItem('assessment_progress');
+        if (!saved) return false;
+
         try {
-            const progress = {
-                assessmentId: this.currentAssessment.id,
-                currentQuestionIndex: this.currentQuestionIndex,
-                answers: Object.fromEntries(this.answers),
-                timeRemaining: this.timeRemaining
-            };
-
-            await apiClient.assessments.saveProgress(progress);
+            const progressData = JSON.parse(saved);
+            
+            // Check if saved progress is for current assessment and recent
+            if (progressData.assessmentId === this.currentAssessment?.id &&
+                Date.now() - progressData.timestamp < 24 * 60 * 60 * 1000) { // 24 hours
+                
+                this.currentQuestionIndex = progressData.currentQuestionIndex;
+                this.answers = new Map(progressData.answers);
+                this.timeRemaining = progressData.timeRemaining;
+                
+                return true;
+            }
         } catch (error) {
-            console.warn('Failed to auto-save progress:', error);
+            console.error('Failed to restore progress:', error);
         }
-    }
 
-    /**
-     * Navigate to previous question
-     */
-    previousQuestion() {
-        if (this.currentQuestionIndex > 0) {
-            this.currentQuestionIndex--;
-            this.loadCurrentQuestion();
-        }
-    }
-
-    /**
-     * Navigate to next question
-     */
-    nextQuestion() {
-        if (this.currentQuestionIndex < this.currentAssessment.questions.length - 1) {
-            this.currentQuestionIndex++;
-            this.loadCurrentQuestion();
-        }
+        return false;
     }
 
     /**
