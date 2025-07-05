@@ -12,8 +12,8 @@ const sendSSEData = (res, eventType, data) => {
 };
 
 // SSE endpoint for real-time updates
-router.get('/updates', authService.verifyToken, (req, res) => {
-  const userId = req.user.id;
+router.get('/updates', authService.authenticateToken, (req, res) => {
+  const userId = req.user.userId;
   
   // Set up SSE headers
   res.writeHead(200, {
@@ -194,7 +194,7 @@ const getConnectionStats = () => {
 };
 
 // Admin endpoint to check SSE connection stats
-router.get('/stats', authService.verifyToken, (req, res) => {
+router.get('/stats', authService.authenticateToken, (req, res) => {
   // TODO: Add admin role check here
   const stats = getConnectionStats();
   res.json({

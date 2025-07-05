@@ -20,20 +20,20 @@ const sendResponse = (res, success, data = null, error = null, statusCode = 200,
 };
 
 // Get all achievements for a user
-router.get('/', authService.verifyToken, async (req, res) => {
+router.get('/', authService.authenticateToken, async (req, res) => {
   try {
-    const userId = req.user.id;
+    const userId = req.user.userId;
     
     const achievements = await database.query(`
       SELECT 
         a.id,
         a.name,
         a.description,
-        a.icon,
+        a.icon_url as icon,
         a.points,
         a.created_at,
-        CASE WHEN ua.id IS NOT NULL THEN true ELSE false END as earned,
-        ua.earned_at
+        CASE WHEN ua.user_id IS NOT NULL THEN true ELSE false END as earned,
+        ua.unlocked_at as earned_at
       FROM achievements a
       LEFT JOIN user_achievements ua ON a.id = ua.achievement_id AND ua.user_id = ?
       ORDER BY a.created_at DESC
@@ -47,18 +47,18 @@ router.get('/', authService.verifyToken, async (req, res) => {
 });
 
 // Get earned achievements for a user
-router.get('/earned', authService.verifyToken, async (req, res) => {
+router.get('/earned', authService.authenticateToken, async (req, res) => {
   try {
-    const userId = req.user.id;
+    const userId = req.user.userId;
     
     const earnedAchievements = await database.query(`
       SELECT 
         a.id,
         a.name,
         a.description,
-        a.icon,
+        a.icon_url as icon,
         a.points,
-        ua.earned_at
+        ua.unlocked_at as earned_at
       FROM achievements a
       JOIN user_achievements ua ON a.id = ua.achievement_id
       WHERE ua.user_id = ?
@@ -73,9 +73,9 @@ router.get('/earned', authService.verifyToken, async (req, res) => {
 });
 
 // Get achievement statistics for a user
-router.get('/stats', authService.verifyToken, async (req, res) => {
+router.get('/stats', authService.authenticateToken, async (req, res) => {
   try {
-    const userId = req.user.id;
+    const userId = req.user.userId;
     
     const stats = await database.query(`
       SELECT 
@@ -95,9 +95,9 @@ router.get('/stats', authService.verifyToken, async (req, res) => {
         a.id,
         a.name,
         a.description,
-        a.icon,
+        a.icon_url as icon,
         a.points,
-        ua.earned_at
+        ua.unlocked_at as earned_at
       FROM achievements a
       JOIN user_achievements ua ON a.id = ua.achievement_id
       WHERE ua.user_id = ?
@@ -116,10 +116,10 @@ router.get('/stats', authService.verifyToken, async (req, res) => {
 });
 
 // Award achievement to user (internal endpoint)
-router.post('/award', authService.verifyToken, async (req, res) => {
+router.post('/award', authService.authenticateToken, async (req, res) => {
   try {
     const { achievement_id } = req.body;
-    const userId = req.user.id;
+    const userId = req.user.userId;
     
     if (!achievement_id) {
       return sendResponse(res, false, null, 'Achievement ID is required', 400, 'ACHIEVEMENT_ID_REQUIRED');
@@ -170,7 +170,7 @@ router.post('/award', authService.verifyToken, async (req, res) => {
 });
 
 // Get achievement leaderboard
-router.get('/leaderboard', authService.verifyToken, async (req, res) => {
+router.get('/leaderboard', authService.authenticateToken, async (req, res) => {
   try {
     const limit = Math.min(parseInt(req.query.limit) || 10, 100);
     const offset = parseInt(req.query.offset) || 0;

@@ -172,9 +172,9 @@ class AuthService {
     return password && password.length >= 8;
   }
 
-  // Middleware for protecting routes
-  authenticateToken(req, res, next) {
-    const authHeader = req.headers['authorization'];
+  // Middleware for protecting routes (using arrow function to preserve 'this')
+  authenticateToken = (req, res, next) => {
+    const authHeader = req.headers['authorization'] || req.headers['Authorization'];
     const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
 
     if (!token) {
@@ -228,8 +228,8 @@ class AuthService {
     next();
   }
 
-  // Alias for authenticateToken to match usage in route files
-  verifyToken(req, res, next) {
+  // Middleware alias for authenticateToken  
+  verifyTokenMiddleware = (req, res, next) => {
     return this.authenticateToken(req, res, next);
   }
 }
