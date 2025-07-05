@@ -8,7 +8,7 @@ description: Update Claude's checkpoint with current progress
 **Current time:** !`date "+%Y-%m-%d %H:%M:%S"`
 
 ## Changed files since last commit:
-!`git diff --name-only`
+!`git diff --name-only 2>/dev/null || echo "Git not initialized"`
 
 ## Update Instructions:
 Please update @docs/CLAUDE-CHECKPOINT.md with:
@@ -22,7 +22,7 @@ Please update @docs/CLAUDE-CHECKPOINT.md with:
 Format example:
 ```
 🚧 Current Work Session:
-[SESSION 2 - 2024-01-15 14:30]
+[SESSION 2 - 2025-01-05 14:30]
 COMPLETED THIS SESSION:
 - Created server.js with Express setup
 - Implemented /api/auth/register endpoint
